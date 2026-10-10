@@ -69,7 +69,7 @@ export const gRPCToHttpError = (e: unknown) => {
   } else {
     throw new ActionError({
       code: "INTERNAL_SERVER_ERROR",
-      message: "Somethings went wrong",
+      message: "Something went wrong",
     });
   }
 };
