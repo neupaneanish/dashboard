@@ -1,4 +1,5 @@
 import { z } from "astro/zod";
+import { parsePhoneNumberWithError } from "libphonenumber-js/mobile";
 
 export const passwordSchema = () => {
   return z
@@ -22,4 +23,39 @@ export const codeSchema = (method: "totp" | "email" | "recovery") => {
     case "recovery":
       return z.string().regex(/^[A-Z0-9]{10}$/, message);
   }
+};
+
+export const mobileSchema = () => {
+  return z
+    .string()
+    .min(1, "Number is required")
+    .superRefine((val, ctx) => {
+      const message = "Enter a valid number";
+      try {
+        const phone = parsePhoneNumberWithError(val);
+
+        if (!phone.isValid()) {
+          ctx.addIssue({
+            code: "custom",
+            message: message,
+          });
+          return;
+        }
+
+        const type = phone.getType();
+        const isMobile = type === "MOBILE" || type === "FIXED_LINE_OR_MOBILE";
+
+        if (!isMobile) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Only mobile number is allowed",
+          });
+        }
+      } catch (_) {
+        ctx.addIssue({
+          code: "custom",
+          message: message,
+        });
+      }
+    });
 };

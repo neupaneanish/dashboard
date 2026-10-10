@@ -1,6 +1,6 @@
 import { z } from "astro/zod";
 
-import { passwordSchema } from "../validation";
+import { mobileSchema, passwordSchema } from "../validation";
 
 export const loginSchema = z.object({
   email: z.email("Enter a valid email").min(1, "Email is required"),
@@ -20,6 +20,22 @@ export const resetPasswordSchema = z
   .object({
     password: passwordSchema(),
     confirmPassword: z.string().min(1, "Confirm Password is required"),
+  })
+  .refine((input) => input.password === input.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Passwords do not match",
+  });
+
+export const registerSchema = z
+  .object({
+    email: z.email("Enter a valid email").min(1, "Email is required"),
+    password: passwordSchema(),
+    confirmPassword: z.string().min(1, "Confirm Password is required"),
+    username: z
+      .string()
+      .min(1, "Username is required")
+      .regex(/^[a-z]+[0-9]*$/, "Enter a valid username"),
+    phone: mobileSchema(),
   })
   .refine((input) => input.password === input.confirmPassword, {
     path: ["confirmPassword"],

@@ -1,4 +1,8 @@
-import { ActionError, defineAction } from "astro:actions";
+import {
+  type ActionAPIContext,
+  ActionError,
+  defineAction,
+} from "astro:actions";
 
 import {
   COOKIES_KEY_RESET,
@@ -6,9 +10,11 @@ import {
   COOKIES_KEY_VERIFICATION,
   COOKIES_KEY_VERIFICATION_METHOD,
 } from "../constants/cookies";
+import type { VerificationSession } from "../protobuf/external/authentication/v1/authentication_pb.ts";
 import {
   forgetPasswordSchema,
   loginSchema,
+  registerSchema,
   resetPasswordSchema,
   verificationSchema,
 } from "../schema/externalAuth";
@@ -78,26 +84,7 @@ export const server = {
         .forgetPassword({ email: input.email })
         .catch(gRPCToHttpError);
 
-      if (!res.verification || !res.verification.expireAt) {
-        throw new ActionError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Something went wrong",
-        });
-      }
-
-      setCookies(
-        context,
-        COOKIES_KEY_VERIFICATION,
-        res.verification.session,
-        res.verification.expireAt,
-      );
-      setCookies(
-        context,
-        COOKIES_KEY_VERIFICATION_METHOD,
-        res.verification.method.toString(),
-        res.verification.expireAt,
-      );
-      return { next: "/verification" };
+      return verificationSession(context, res.verification);
     },
   }),
 
@@ -248,4 +235,48 @@ export const server = {
       );
     },
   }),
+
+  register: defineAction({
+    accept: "form",
+    input: registerSchema,
+    handler: async (input, context) => {
+      const res = await externalAuthenticationClient
+        .register({
+          email: input.email,
+          password: { value: input.password },
+          confirmPassword: { value: input.confirmPassword },
+          username: input.username,
+          phone: input.phone,
+        })
+        .catch(gRPCToHttpError);
+
+      return verificationSession(context, res.verification);
+    },
+  }),
+};
+
+const verificationSession = (
+  context: ActionAPIContext,
+  verification: VerificationSession | undefined,
+) => {
+  if (!verification || !verification.expireAt) {
+    throw new ActionError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Something went wrong",
+    });
+  }
+
+  setCookies(
+    context,
+    COOKIES_KEY_VERIFICATION,
+    verification.session,
+    verification.expireAt,
+  );
+  setCookies(
+    context,
+    COOKIES_KEY_VERIFICATION_METHOD,
+    verification.method.toString(),
+    verification.expireAt,
+  );
+  return { next: "/verification" };
 };
