@@ -13,7 +13,7 @@ import {
   verificationSchema,
 } from "../schema/externalAuth";
 import { externalAuthenticationClient } from "../server/grpc";
-import { gRPCToHttpError, setCookies } from "../utils";
+import { gRPCToHttpError, sessionExpired, setCookies } from "../utils";
 import { codeSchema, passwordSchema } from "../validation";
 
 export const server = {
@@ -114,6 +114,7 @@ export const server = {
       const sessionMethod = sessionMethodCookies?.value;
 
       if (!session || !sessionMethod) {
+        sessionExpired(context, "Verification");
         throw new ActionError({
           code: "UNAUTHORIZED",
           message: "Session expired",
@@ -168,7 +169,7 @@ export const server = {
             res.response.value.method.toString(),
             res.response.value.expireAt,
           );
-          return { next: "/verification" };
+          break;
         case "resetSession":
           setCookies(
             context,
@@ -190,6 +191,7 @@ export const server = {
       const session = sessionCookies?.value;
 
       if (!session) {
+        sessionExpired(context, "Reset Password");
         throw new ActionError({
           code: "UNAUTHORIZED",
           message: "Session expired",
@@ -205,6 +207,45 @@ export const server = {
         .catch(gRPCToHttpError);
       context.cookies.delete(COOKIES_KEY_RESET, { path: "/" });
       return { next: "/login" };
+    },
+  }),
+
+  resend: defineAction({
+    handler: async (_, context) => {
+      const sessionCookies = context.cookies.get(COOKIES_KEY_VERIFICATION);
+      const sessionMethodCookies = context.cookies.get(
+        COOKIES_KEY_VERIFICATION_METHOD,
+      );
+
+      const session = sessionCookies?.value;
+      const sessionMethod = sessionMethodCookies?.value;
+
+      if (!session || !sessionMethod) {
+        sessionExpired(context, "Verification");
+        throw new ActionError({
+          code: "UNAUTHORIZED",
+          message: "Session expired",
+        });
+      }
+
+      const res = await externalAuthenticationClient
+        .resend({ session: session })
+        .catch(gRPCToHttpError);
+
+      if (!res.expireAt) {
+        throw new ActionError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Something went wrong",
+        });
+      }
+
+      setCookies(context, COOKIES_KEY_VERIFICATION, res.session, res.expireAt);
+      setCookies(
+        context,
+        COOKIES_KEY_VERIFICATION_METHOD,
+        sessionMethod,
+        res.expireAt,
+      );
     },
   }),
 };

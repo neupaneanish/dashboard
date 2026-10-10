@@ -73,3 +73,18 @@ export const gRPCToHttpError = (e: unknown) => {
     });
   }
 };
+
+export const sessionExpired = (context: ActionAPIContext, page: string) => {
+  context.cookies.set("session-expired", "true", {
+    path: "/",
+    httpOnly: false,
+    sameSite: "strict",
+    maxAge: 60,
+  });
+  context.cookies.set("session-expired-message", page, {
+    path: "/",
+    httpOnly: false,
+    sameSite: "strict",
+    maxAge: 60,
+  });
+};
