@@ -9,6 +9,7 @@ import {
 import {
   forgetPasswordSchema,
   loginSchema,
+  resetPasswordSchema,
   verificationSchema,
 } from "../schema/externalAuth";
 import { externalAuthenticationClient } from "../server/grpc";
@@ -177,6 +178,33 @@ export const server = {
           );
           return { next: "/reset-password" };
       }
+    },
+  }),
+
+  resetPassword: defineAction({
+    accept: "form",
+    input: resetPasswordSchema,
+    handler: async (input, context) => {
+      const sessionCookies = context.cookies.get(COOKIES_KEY_RESET);
+
+      const session = sessionCookies?.value;
+
+      if (!session) {
+        throw new ActionError({
+          code: "UNAUTHORIZED",
+          message: "Session expired",
+        });
+      }
+
+      await externalAuthenticationClient
+        .resetPassword({
+          password: { value: input.password },
+          confirmPassword: { value: input.confirmPassword },
+          session: session,
+        })
+        .catch(gRPCToHttpError);
+      context.cookies.delete(COOKIES_KEY_RESET, { path: "/" });
+      return { next: "/login" };
     },
   }),
 };
