@@ -1,12 +1,14 @@
 {
-  "plugins": ["prettier-plugin-astro"],
+  "plugins": [
+    "prettier-plugin-astro"
+  ],
   "overrides": [
     {
       "files": "*.astro",
       "options": {
         "parser": "astro",
         "singleQuote": true,
-        "jsxSingleQuote": false,
+        "jsxSingleQuote": true,
         "arrowParens": "avoid",
         "bracketSameLine": false,
         "printWidth": 80,

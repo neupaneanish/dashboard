@@ -1,6 +1,5 @@
-import { defineConfig, envField } from "astro/config";
-
 import node from "@astrojs/node";
+import { defineConfig, envField } from "astro/config";
 
 export default defineConfig({
   output: "server",

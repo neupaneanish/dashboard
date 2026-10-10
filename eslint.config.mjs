@@ -1,10 +1,10 @@
 import eslint from "@eslint/js";
+import { defineConfig } from "eslint/config";
 import eslintPluginAstro from "eslint-plugin-astro";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import unusedImports from "eslint-plugin-unused-imports";
 import tsEslint from "typescript-eslint";
-import { defineConfig } from "eslint/config";
 
 export default defineConfig(
   {
