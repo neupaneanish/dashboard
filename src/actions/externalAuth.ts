@@ -5,7 +5,7 @@ import {
   COOKIES_KEY_VERIFICATION,
   COOKIES_KEY_VERIFICATION_METHOD,
 } from "../constants/cookies";
-import { loginSchema } from "../schema/externalAuth";
+import { forgetPasswordSchema, loginSchema } from "../schema/externalAuth";
 import { externalAuthenticationClient } from "../server/grpc";
 import { gRPCToHttpError, setCookies } from "../utils";
 import { passwordSchema } from "../validation";
@@ -66,6 +66,37 @@ export const server = {
           );
           return { next: "/verification" };
       }
+    },
+  }),
+
+  forgetPassword: defineAction({
+    accept: "form",
+    input: forgetPasswordSchema,
+    handler: async (input, context) => {
+      const res = await externalAuthenticationClient
+        .forgetPassword({ email: input.email })
+        .catch(gRPCToHttpError);
+
+      if (!res.verification || !res.verification.expireAt) {
+        throw new ActionError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Something went wrong",
+        });
+      }
+
+      setCookies(
+        context,
+        COOKIES_KEY_VERIFICATION,
+        res.verification.session,
+        res.verification.expireAt,
+      );
+      setCookies(
+        context,
+        COOKIES_KEY_VERIFICATION_METHOD,
+        res.verification.method.toString(),
+        res.verification.expireAt,
+      );
+      return { next: "/verification" };
     },
   }),
 };
