@@ -9,3 +9,17 @@ export const passwordSchema = () => {
     .regex(/[0-9]/, "Must include at least one number")
     .regex(/[^a-zA-Z0-9]/, "Must include at least one special character");
 };
+
+export const codeSchema = (method: "totp" | "email" | "recovery") => {
+  const message = "Enter a valid code";
+  switch (method) {
+    case "totp":
+      return z.string().regex(/^\d{6}$/, message);
+
+    case "email":
+      return z.string().regex(/^[A-Z0-9]{8}$/, message);
+
+    case "recovery":
+      return z.string().regex(/^[A-Z0-9]{10}$/, message);
+  }
+};

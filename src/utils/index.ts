@@ -42,7 +42,7 @@ const gRPCCode = (code: Code): ActionErrorCode => {
     case Code.FailedPrecondition:
       return "PRECONDITION_FAILED";
     case Code.Aborted:
-      return "BAD_REQUEST";
+      return "EXPECTATION_FAILED";
     case Code.OutOfRange:
       return "BAD_REQUEST";
     case Code.Unimplemented:

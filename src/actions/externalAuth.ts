@@ -1,14 +1,19 @@
 import { ActionError, defineAction } from "astro:actions";
 
 import {
+  COOKIES_KEY_RESET,
   COOKIES_KEY_SESSION,
   COOKIES_KEY_VERIFICATION,
   COOKIES_KEY_VERIFICATION_METHOD,
 } from "../constants/cookies";
-import { forgetPasswordSchema, loginSchema } from "../schema/externalAuth";
+import {
+  forgetPasswordSchema,
+  loginSchema,
+  verificationSchema,
+} from "../schema/externalAuth";
 import { externalAuthenticationClient } from "../server/grpc";
 import { gRPCToHttpError, setCookies } from "../utils";
-import { passwordSchema } from "../validation";
+import { codeSchema, passwordSchema } from "../validation";
 
 export const server = {
   login: defineAction({
@@ -30,14 +35,15 @@ export const server = {
         })
         .catch(gRPCToHttpError);
 
+      if (!res.response.value || !res.response.value.expireAt) {
+        throw new ActionError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Something went wrong",
+        });
+      }
+
       switch (res.response.case) {
         case "session":
-          if (!res.response.value.expireAt) {
-            throw new ActionError({
-              code: "INTERNAL_SERVER_ERROR",
-              message: "Something went wrong",
-            });
-          }
           setCookies(
             context,
             COOKIES_KEY_SESSION,
@@ -46,12 +52,6 @@ export const server = {
           );
           return { next: "/" };
         case "verification":
-          if (!res.response.value.expireAt) {
-            throw new ActionError({
-              code: "INTERNAL_SERVER_ERROR",
-              message: "Something went wrong",
-            });
-          }
           setCookies(
             context,
             COOKIES_KEY_VERIFICATION,
@@ -97,6 +97,86 @@ export const server = {
         res.verification.expireAt,
       );
       return { next: "/verification" };
+    },
+  }),
+
+  verification: defineAction({
+    accept: "form",
+    input: verificationSchema,
+    handler: async (input, context) => {
+      const sessionCookies = context.cookies.get(COOKIES_KEY_VERIFICATION);
+      const sessionMethodCookies = context.cookies.get(
+        COOKIES_KEY_VERIFICATION_METHOD,
+      );
+
+      const session = sessionCookies?.value;
+      const sessionMethod = sessionMethodCookies?.value;
+
+      if (!session || !sessionMethod) {
+        throw new ActionError({
+          code: "UNAUTHORIZED",
+          message: "Session expired",
+        });
+      }
+
+      const result = codeSchema(input.method).safeParse(input.code);
+
+      if (!result.success) {
+        throw new ActionError({
+          code: "BAD_REQUEST",
+          message: JSON.stringify({ code: ["Enter a valid code"] }),
+        });
+      }
+
+      const res = await externalAuthenticationClient
+        .verification({
+          code: {
+            case: input.method,
+            value: input.code,
+          },
+          session: session,
+        })
+        .catch(gRPCToHttpError);
+
+      if (!res.response.value || !res.response.value.expireAt) {
+        throw new ActionError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Something went wrong",
+        });
+      }
+
+      switch (res.response.case) {
+        case "session":
+          setCookies(
+            context,
+            COOKIES_KEY_SESSION,
+            res.response.value.session,
+            res.response.value.expireAt,
+          );
+          return { next: "/" };
+        case "verification":
+          setCookies(
+            context,
+            COOKIES_KEY_VERIFICATION,
+            res.response.value.session,
+            res.response.value.expireAt,
+          );
+          setCookies(
+            context,
+            COOKIES_KEY_VERIFICATION_METHOD,
+            res.response.value.method.toString(),
+            res.response.value.expireAt,
+          );
+          return { next: "/verification" };
+        case "resetSession":
+          setCookies(
+            context,
+            COOKIES_KEY_RESET,
+            res.response.value.session,
+            res.response.value.expireAt,
+          );
+          return { next: "/reset-password" };
+      }
     },
   }),
 };
