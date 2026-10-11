@@ -6,6 +6,12 @@ import {
   type ActionErrorCode,
 } from "astro:actions";
 
+import {
+  COOKIES_KEY_VERIFICATION,
+  COOKIES_KEY_VERIFICATION_METHOD,
+} from "../constants/cookies";
+import type { VerificationSession } from "../protobuf/external/authentication/v1/authentication_pb";
+
 export const setCookies = (
   context: ActionAPIContext,
   name: string,
@@ -75,16 +81,36 @@ export const gRPCToHttpError = (e: unknown) => {
 };
 
 export const sessionExpired = (context: ActionAPIContext, page: string) => {
-  context.cookies.set("session-expired", "true", {
+  context.cookies.set("session-expired", page, {
     path: "/",
-    httpOnly: false,
+    httpOnly: true,
     sameSite: "strict",
     maxAge: 60,
   });
-  context.cookies.set("session-expired-message", page, {
-    path: "/",
-    httpOnly: false,
-    sameSite: "strict",
-    maxAge: 60,
-  });
+};
+
+export const verificationSession = (
+  context: ActionAPIContext,
+  verification: VerificationSession | undefined,
+) => {
+  if (!verification || !verification.expireAt) {
+    throw new ActionError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Something went wrong",
+    });
+  }
+
+  setCookies(
+    context,
+    COOKIES_KEY_VERIFICATION,
+    verification.session,
+    verification.expireAt,
+  );
+  setCookies(
+    context,
+    COOKIES_KEY_VERIFICATION_METHOD,
+    verification.method.toString(),
+    verification.expireAt,
+  );
+  return { next: "/verification" };
 };

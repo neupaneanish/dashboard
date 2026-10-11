@@ -5,11 +5,11 @@ import {
   PROFILE_SERVICE_URL,
 } from "astro:env/server";
 
-import { ExternalAuthenticationService } from "../protobuf/external/authentication/v1/authentication_pb.ts";
-import { GatewayAuthenticationService } from "../protobuf/gateway/authentication/v1/authentication_pb.ts";
-import { GatewayProfileService } from "../protobuf/gateway/profile/v1/profile_pb.ts";
-import { RootAuthenticationService } from "../protobuf/root/authentication/v1/authentication_pb.ts";
-import { RootProfileService } from "../protobuf/root/profile/v1/profile_pb.ts";
+import { ExternalAuthenticationService } from "../protobuf/external/authentication/v1/authentication_pb";
+import { GatewayAuthenticationService } from "../protobuf/gateway/authentication/v1/authentication_pb";
+import { GatewayProfileService } from "../protobuf/gateway/profile/v1/profile_pb";
+import { RootAuthenticationService } from "../protobuf/root/authentication/v1/authentication_pb";
+import { RootProfileService } from "../protobuf/root/profile/v1/profile_pb";
 
 const externalAuthenticationTransport = createGrpcTransport({
   baseUrl: AUTHENTICATION_SERVICE_URL,
