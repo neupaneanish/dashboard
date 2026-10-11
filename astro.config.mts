@@ -6,6 +6,7 @@ export default defineConfig({
   adapter: node({
     mode: "standalone",
   }),
+  prefetch: false,
   env: {
     schema: {
       AUTHENTICATION_SERVICE_URL: envField.string({
