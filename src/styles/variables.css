@@ -1,0 +1,14 @@
+:root {
+  color-scheme: light dark;
+
+  --font-header: "Audiowide", sans-serif;
+  --font-body: "Roboto", sans-serif;
+
+  --color-dark: #0f172a;
+  --color-white: #f8fafc;
+  --color-crimson: #dc143c;
+  --color-blue: #003893;
+  --color-orange: #ff8000;
+  --color-green: #34a853;
+  --color-error: #ed4337;
+}
