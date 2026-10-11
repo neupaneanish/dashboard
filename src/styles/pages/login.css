@@ -1,0 +1,24 @@
+.login {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  .footer {
+    display: flex;
+    justify-content: space-between;
+
+    .register {
+      color: var(--color-green);
+    }
+
+    .forget-password {
+      color: var(--color-crimson);
+    }
+
+    a {
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}

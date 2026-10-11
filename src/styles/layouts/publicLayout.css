@@ -1,0 +1,19 @@
+main {
+  display: flex;
+  width: 100%;
+  height: 100svh;
+  justify-content: center;
+  align-items: center;
+
+  .public {
+    max-width: 30rem;
+    width: 100%;
+  }
+}
+
+.header {
+  text-align: center;
+  font-size: 2.5rem;
+  color: light-dark(var(--color-crimson), var(--color-white));
+  font-family: var(--font-header), sans-serif;
+}
