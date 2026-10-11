@@ -8,12 +8,25 @@ import { gRPCToHttpError, sessionExpired } from "./utils";
 
 const schema = z
   .object({
-    password: passwordSchema(),
-    confirmPassword: z.string().min(1, "Confirm Password is required"),
+    password: z
+      .string()
+      .or(z.null())
+      .transform((val) => val ?? "")
+      .pipe(passwordSchema()),
+    confirmPassword: z
+      .string()
+      .or(z.null())
+      .transform((val) => val ?? "")
+      .pipe(z.string().min(1, "Confirm Password is required")),
   })
-  .refine((input) => input.password === input.confirmPassword, {
-    path: ["confirmPassword"],
-    message: "Passwords do not match",
+  .superRefine(({ password, confirmPassword }, ctx) => {
+    if (password !== confirmPassword) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Passwords do not match",
+        path: ["confirmPassword"],
+      });
+    }
   });
 
 export const resetPassword = defineAction({
