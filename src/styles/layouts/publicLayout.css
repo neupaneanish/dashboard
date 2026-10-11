@@ -17,3 +17,40 @@ main {
   color: light-dark(var(--color-crimson), var(--color-white));
   font-family: var(--font-header), sans-serif;
 }
+
+.footer {
+  margin-top: 1rem;
+
+  .stack {
+    display: flex;
+    justify-content: space-between;
+
+    .register {
+      color: var(--color-green);
+    }
+
+    .forget-password {
+      color: var(--color-crimson);
+    }
+
+    a {
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  .login {
+    display: block;
+    text-align: center;
+    border-radius: 0.25rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    width: 100%;
+
+    &:hover {
+      background-color: color-mix(in srgb, var(--color-green) 75%, transparent);
+    }
+  }
+}

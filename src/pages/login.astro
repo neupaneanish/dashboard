@@ -1,6 +1,5 @@
 ---
 import PublicLayout from '../layouts/PublicLayout.astro';
-import '../styles/pages/login.css';
 import { COOKIES_KEY_SESSION } from '../constants/cookies';
 import { actions, isInputError, isActionError } from 'astro:actions';
 
@@ -15,6 +14,14 @@ if (sessionExpired) {
 }
 
 const response = Astro.getActionResult(actions.login);
+
+const isPost = Astro.request.method === 'POST';
+const values = isPost
+  ? (Object.fromEntries(await Astro.request.clone().formData()) as Record<
+      string,
+      string
+    >)
+  : ({} as Record<string, string>);
 
 if (response?.data) {
   return Astro.redirect(response.data.next);
@@ -40,13 +47,8 @@ const serverError =
   <div class='login'>
     <h2 class='header'>Welcome Back</h2>
     {serverError && (
-      <div
-        id='error-message'
-        class='error-message'
-        animate.enter='fade-in-slide'
-        animate.leave='fade-out-slide'
-      >
-        {serverError}
+      <div class='error-message'>
+        <p>{serverError}</p>
       </div>
     )}
     <form id='login-form' class='form' method='post' action={actions.login}>
@@ -57,6 +59,8 @@ const serverError =
           name='email'
           placeholder='Enter an email'
           type='email'
+          value={values.email || ''}
+          autocomplete='off'
         />
         <div class='errors'>
           {emailError && <span class='error'>{emailError}</span>}
@@ -69,6 +73,8 @@ const serverError =
           name='password'
           placeholder='Enter a password'
           type='password'
+          value={values.password || ''}
+          autocomplete='off'
         />
         <div class='errors'>
           {passwordError && <span class='error'>{passwordError}</span>}
@@ -79,15 +85,17 @@ const serverError =
       </button>
     </form>
     <div class='footer'>
-      <div>
-        <a class='register' href='/register'>
-          Don't have account? Register
-        </a>
-      </div>
-      <div>
-        <a class='forget-password' href='/forget-password'>
-          Forget Password?
-        </a>
+      <div class='stack'>
+        <div>
+          <a class='register' href='/register'>
+            Don't have account? Register
+          </a>
+        </div>
+        <div>
+          <a class='forget-password' href='/forget-password'>
+            Forget Password?
+          </a>
+        </div>
       </div>
     </div>
   </div>
