@@ -11,14 +11,17 @@ export default defineConfig({
       AUTHENTICATION_SERVICE_URL: envField.string({
         context: "server",
         access: "secret",
+        optional: false,
       }),
       PROFILE_SERVICE_URL: envField.string({
         context: "server",
         access: "secret",
+        optional: false,
       }),
       VALKEY_URL: envField.string({
         context: "server",
         access: "secret",
+        optional: false,
       }),
     },
   },
