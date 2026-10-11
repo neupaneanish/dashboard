@@ -1,0 +1,160 @@
+---
+import { actions, isActionError, isInputError } from 'astro:actions';
+import PublicLayout from '../layouts/PublicLayout.astro';
+import { COOKIES_KEY_SESSION } from '../constants/cookies';
+import PasswordStrength from '../components/PasswordStrength.astro';
+
+if (Astro.cookies.has(COOKIES_KEY_SESSION)) {
+  return Astro.redirect('/');
+}
+
+const response = Astro.getActionResult(actions.register);
+
+if (response?.data) {
+  return Astro.redirect(response.data.next);
+}
+
+const isPost = Astro.request.method === 'POST';
+const values = isPost
+  ? (Object.fromEntries(await Astro.request.clone().formData()) as Record<
+      string,
+      string
+    >)
+  : ({} as Record<string, string>);
+
+const emailError = isInputError(response?.error)
+  ? response.error.fields.email?.[0]
+  : undefined;
+
+const passwordError = isInputError(response?.error)
+  ? response.error.fields.password
+  : undefined;
+
+const confirmPasswordError = isInputError(response?.error)
+  ? response.error.fields.confirmPassword?.[0]
+  : undefined;
+
+const usernameError = isInputError(response?.error)
+  ? response.error.fields.username?.[0]
+  : undefined;
+
+const phoneError = isInputError(response?.error)
+  ? response.error.fields.phone?.[0]
+  : undefined;
+
+const serverError =
+  response?.error &&
+  isActionError(response.error) &&
+  !isInputError(response.error)
+    ? response.error.message
+    : undefined;
+---
+
+<PublicLayout title='Register'>
+  <div class='register'>
+    <h2 class='header'>Register</h2>
+    {serverError && (
+      <div class='error-message'>
+        <p>{serverError}</p>
+      </div>
+    )}
+    <form class='form' method='post' action={actions.register}>
+      <div class='form-group'>
+        <label for='email'>Email</label>
+        <input
+          id='email'
+          name='email'
+          placeholder='Enter an email'
+          type='email'
+          value={values?.email || ''}
+          autocomplete='off'
+        />
+        <div class='errors'>
+          {emailError ? (
+            <span class='error'>{emailError}</span>
+          ) : (
+            <span class='hint'>Must be valid business email</span>
+          )}
+        </div>
+      </div>
+      <div class='form-group'>
+        <label for='password'>Password</label>
+        <input
+          id='password'
+          name='password'
+          placeholder='Enter a password'
+          type='password'
+          value={values?.password || ''}
+          autocomplete='off'
+        />
+        <PasswordStrength passwordError={passwordError} />
+      </div>
+      <div class='form-group'>
+        <label for='confirmPassword'>Confirm Password</label>
+        <input
+          id='confirmPassword'
+          name='confirmPassword'
+          placeholder='Enter a confirm password'
+          type='password'
+          value={values?.confirmPassword || ''}
+          autocomplete='off'
+        />
+        <div class='errors'>
+          {confirmPasswordError ? (
+            <span class='error'>{confirmPasswordError}</span>
+          ) : (
+            <span class='hint'>Must match with password</span>
+          )}
+        </div>
+      </div>
+      <div class='form-group'>
+        <label for='username'>Username</label>
+        <input
+          id='username'
+          name='username'
+          placeholder='Enter an username'
+          type='text'
+          value={values?.username || ''}
+          autocomplete='off'
+        />
+        <div class='errors'>
+          {usernameError ? (
+            <span class='error'>{usernameError}</span>
+          ) : (
+            <span class='hint'>
+              Username must be alphabets followed by number
+            </span>
+          )}
+        </div>
+      </div>
+      <div class='form-group'>
+        <label for='phone'>Mobile</label>
+        <input
+          id='phone'
+          name='phone'
+          placeholder='Enter a mobile number'
+          type='tel'
+          value={values?.phone || ''}
+          autocomplete='off'
+        />
+        <div class='errors'>
+          {phoneError ? (
+            <span class='error'>{phoneError}</span>
+          ) : (
+            <span class='hint'>Mobile number must be international format</span>
+          )}
+        </div>
+      </div>
+      <button class='btn-primary' type='submit'>
+        Register
+      </button>
+    </form>
+    <div class='footer'>
+      <div>
+        <a class='login' href='/login'>
+          Back to Login?
+        </a>
+      </div>
+    </div>
+  </div>
+</PublicLayout>
