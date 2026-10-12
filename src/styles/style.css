@@ -101,11 +101,9 @@ body {
   }
 }
 
-.btn-primary {
+.btn {
   width: 100%;
   padding: 0.5rem;
-  background-color: var(--color-blue);
-  color: var(--color-white);
   border: none;
   border-radius: 0.25rem;
   font-size: 1rem;
@@ -113,6 +111,11 @@ body {
   cursor: pointer;
   transition: background-color 0.2s ease;
   text-align: center;
+}
+
+.btn-blue {
+  background-color: var(--color-blue);
+  color: var(--color-white);
 
   &:hover {
     background-color: light-dark(
@@ -123,6 +126,73 @@ body {
 
   &:disabled {
     background-color: color-mix(in srgb, var(--color-blue) 50%, black);
+    cursor: not-allowed;
+  }
+}
+
+.btn-crimson {
+  background-color: var(--color-crimson);
+  color: var(--color-white);
+
+  &:hover {
+    background-color: light-dark(
+      color-mix(in srgb, var(--color-crimson) 85%, black),
+      color-mix(in srgb, var(--color-crimson) 85%, transparent)
+    );
+  }
+
+  &:disabled {
+    background-color: color-mix(in srgb, var(--color-crimson) 50%, black);
+    cursor: not-allowed;
+  }
+}
+
+.btn-orange {
+  background-color: var(--color-orange);
+  color: var(--color-white);
+
+  &:hover {
+    background-color: light-dark(
+      color-mix(in srgb, var(--color-orange) 85%, black),
+      color-mix(in srgb, var(--color-orange) 85%, transparent)
+    );
+  }
+
+  &:disabled {
+    background-color: color-mix(in srgb, var(--color-orange) 50%, black);
+    cursor: not-allowed;
+  }
+}
+
+.btn-green {
+  background-color: var(--color-green);
+  color: var(--color-white);
+
+  &:hover {
+    background-color: light-dark(
+      color-mix(in srgb, var(--color-green) 85%, black),
+      color-mix(in srgb, var(--color-green) 85%, transparent)
+    );
+  }
+
+  &:disabled {
+    background-color: color-mix(in srgb, var(--color-green) 50%, black);
+    cursor: not-allowed;
+  }
+}
+
+.btn-green-link {
+  color: var(--color-green);
+  background: transparent;
+
+  &:hover {
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &:disabled {
+    background-color: color-mix(in srgb, var(--color-green) 50%, black);
     cursor: not-allowed;
   }
 }
