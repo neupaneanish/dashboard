@@ -1,16 +1,19 @@
 ---
 import PublicLayout from '../layouts/PublicLayout.astro';
-import { COOKIES_KEY_SESSION } from '../constants/cookies';
+import {
+  COOKIES_KEY_SESSION,
+  COOKIES_KEY_SESSION_EXPIRED,
+} from '../constants/cookies';
 import { actions, isInputError, isActionError } from 'astro:actions';
 
 if (Astro.cookies.has(COOKIES_KEY_SESSION)) {
   return Astro.redirect('/');
 }
 
-const sessionExpired = Astro.cookies.get('session-expired')?.value;
+const sessionExpired = Astro.cookies.get(COOKIES_KEY_SESSION_EXPIRED)?.value;
 
 if (sessionExpired) {
-  Astro.cookies.delete('session-expired', { path: '/' });
+  Astro.cookies.delete(COOKIES_KEY_SESSION_EXPIRED, { path: '/' });
 }
 
 const response = Astro.getActionResult(actions.login);
@@ -80,7 +83,7 @@ const serverError =
           {passwordError && <span class='error'>{passwordError}</span>}
         </div>
       </div>
-      <button class='btn-primary' type='submit'>
+      <button class='btn btn-blue' type='submit'>
         Login
       </button>
     </form>
