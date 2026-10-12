@@ -3,7 +3,7 @@ import { login } from "./login";
 import { register } from "./register";
 import { resend } from "./resend";
 import { resetPassword } from "./resetPassword";
-import { verification } from "./verification";
+import { verification, verificationMethodToggle } from "./verification";
 
 export const server = {
   forgetPassword,
@@ -12,4 +12,5 @@ export const server = {
   resend,
   resetPassword,
   verification,
+  verificationMethodToggle,
 };
