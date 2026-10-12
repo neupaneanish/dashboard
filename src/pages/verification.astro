@@ -1,0 +1,264 @@
+---
+import { actions, isInputError, isActionError } from 'astro:actions';
+import {
+  COOKIES_KEY_LAST_RESEND_TIME,
+  COOKIES_KEY_SESSION,
+  COOKIES_KEY_SESSION_EXPIRED,
+  COOKIES_KEY_VERIFICATION,
+  COOKIES_KEY_VERIFICATION_METHOD,
+  COOKIES_KEY_VERIFICATION_METHOD_TYPE,
+} from '../constants/cookies';
+import PublicLayout from '../layouts/PublicLayout.astro';
+import { VerificationMethod } from '../protobuf/external/authentication/v1/authentication_pb';
+import { setCookiesPage } from '../actions/utils';
+
+if (Astro.cookies.has(COOKIES_KEY_SESSION)) {
+  return Astro.redirect('/');
+}
+
+const methodSession = Astro.cookies
+  .get(COOKIES_KEY_VERIFICATION_METHOD)
+  ?.number();
+
+if (
+  !Astro.cookies.has(COOKIES_KEY_VERIFICATION) ||
+  methodSession === undefined
+) {
+  return Astro.redirect('/login');
+}
+
+const deleteCookies = () => {
+  Astro.cookies.delete(COOKIES_KEY_VERIFICATION, { path: '/' });
+  Astro.cookies.delete(COOKIES_KEY_VERIFICATION_METHOD, { path: '/' });
+  Astro.cookies.delete(COOKIES_KEY_VERIFICATION_METHOD_TYPE, { path: '/' });
+  Astro.cookies.delete(COOKIES_KEY_LAST_RESEND_TIME, { path: '/' });
+  return Astro.redirect('/login');
+};
+
+if (isNaN(methodSession) || !Number.isInteger(methodSession)) {
+  return deleteCookies();
+}
+
+let methodType = Astro.cookies.get(COOKIES_KEY_VERIFICATION_METHOD_TYPE)?.value;
+
+if (methodSession === VerificationMethod.TWO_FACTOR && !methodType) {
+  methodType = 'totp';
+  setCookiesPage(
+    Astro.cookies,
+    COOKIES_KEY_VERIFICATION_METHOD_TYPE,
+    'totp',
+    300
+  );
+}
+
+let hint: string = '';
+
+const method = (() => {
+  switch (methodSession) {
+    case VerificationMethod.TWO_FACTOR:
+      switch (methodType) {
+        case 'recovery':
+          hint = 'Enter a 10 digits code from your backup';
+          return 'recovery';
+        case 'totp':
+          hint = 'Enter a 6 digits code from authenticator app';
+          return 'totp';
+        default:
+          return '';
+      }
+    case VerificationMethod.ACCOUNT:
+    case VerificationMethod.EMAIL:
+    case VerificationMethod.RESET:
+      hint = 'Enter a 8 digits code from your email';
+      return 'email';
+    default:
+      return '';
+  }
+})();
+
+const heading = (() => {
+  switch (methodSession) {
+    case VerificationMethod.ACCOUNT:
+      return 'Account Verification';
+    case VerificationMethod.EMAIL:
+      return 'Email Verification';
+    case VerificationMethod.RESET:
+      return 'Reset Verification';
+    case VerificationMethod.TWO_FACTOR:
+      return '2FA Verification';
+    default:
+      return '';
+  }
+})();
+
+if (method === '' || heading === '') {
+  return deleteCookies();
+}
+
+const response = Astro.getActionResult(actions.verification);
+const resendResponse = Astro.getActionResult(actions.resend);
+const toggleResponse = Astro.getActionResult(actions.verificationMethodToggle);
+
+if (response?.data) {
+  Astro.cookies.delete(COOKIES_KEY_VERIFICATION_METHOD_TYPE, { path: '/' });
+  Astro.cookies.delete(COOKIES_KEY_LAST_RESEND_TIME, { path: '/' });
+  return Astro.redirect(response.data.next);
+}
+
+const RESEND_DURATION = 120;
+const currentTimestamp = Math.floor(Date.now() / 1000);
+
+let lastResendCookie = Astro.cookies.get(COOKIES_KEY_LAST_RESEND_TIME)?.value;
+const isResendSuccessful = resendResponse && !resendResponse.error;
+
+if (isResendSuccessful || !lastResendCookie) {
+  lastResendCookie = currentTimestamp.toString();
+  setCookiesPage(
+    Astro.cookies,
+    COOKIES_KEY_LAST_RESEND_TIME,
+    lastResendCookie,
+    RESEND_DURATION
+  );
+}
+
+let remainingSeconds: number;
+if (lastResendCookie) {
+  const elapsed = currentTimestamp - Number(lastResendCookie);
+  remainingSeconds = Math.max(0, RESEND_DURATION - elapsed);
+} else {
+  remainingSeconds = 0;
+}
+
+const isResendActive = remainingSeconds > 0;
+const resendInitText = `Resend in ${remainingSeconds}s`;
+
+const isVerificationError =
+  response?.error &&
+  isActionError(response.error) &&
+  (response.error.code === 'EXPECTATION_FAILED' ||
+    response.error.code === 'UNAUTHORIZED');
+
+const isResendError =
+  resendResponse?.error &&
+  isActionError(resendResponse.error) &&
+  (resendResponse.error.code === 'EXPECTATION_FAILED' ||
+    resendResponse.error.code === 'UNAUTHORIZED');
+
+if (isVerificationError || isResendError) {
+  setCookiesPage(Astro.cookies, COOKIES_KEY_SESSION_EXPIRED, heading, 60);
+  return deleteCookies();
+}
+
+const structuralError =
+  (response?.error && !isInputError(response.error)
+    ? response.error
+    : undefined) || resendResponse?.error;
+
+const serverError =
+  structuralError && isActionError(structuralError)
+    ? structuralError.message
+    : undefined;
+
+if (toggleResponse?.data) {
+  return Astro.redirect(toggleResponse.data.next);
+}
+
+const codeError = isInputError(response?.error)
+  ? response.error.fields.code?.[0]
+  : undefined;
+---
+
+<PublicLayout title='Verification'>
+  <div class='verification'>
+    <h2 class='header'>{heading}</h2>
+    {serverError && (
+      <div class='error-message'>
+        <p>{serverError}</p>
+      </div>
+    )}
+    <form class='form' method='post' action={actions.verification}>
+      {/* 3. FIXED METHOD VALUE: Uses the dynamic backend variable instead of a hardcoded 'email' string! */}
+      <input type='hidden' name='method' value={method} />
+      <div class='form-group'>
+        <label for='code'>Code</label>
+        <input
+          id='code'
+          name='code'
+          placeholder='Enter a code'
+          type='text'
+          autocomplete='off'
+        />
+        <div class='errors'>
+          {codeError ? (
+            <span class='error'>{codeError}</span>
+          ) : (
+            <span class='hint'>{hint}</span>
+          )}
+        </div>
+      </div>
+      <button class='btn btn-blue' type='submit'>
+        Verify
+      </button>
+    </form>
+    <div style='margin: 1rem 0'>
+      {methodSession === VerificationMethod.TWO_FACTOR ? (
+        <form method='post' action={actions.verificationMethodToggle}>
+          <input
+            type='hidden'
+            name='currentTarget'
+            value={method as 'totp' | 'recovery'}
+          />
+          <button class='btn btn-green-link' type='submit'>
+            {method === 'totp' ? 'Use Recovery' : 'Use App'}
+          </button>
+        </form>
+      ) : (
+        <form method='post' action={actions.resend}>
+          <button
+            id='resend-btn'
+            class='btn btn-orange'
+            type='submit'
+            disabled={isResendActive}
+            data-countdown={remainingSeconds}
+          >
+            {isResendActive ? resendInitText : 'Resend Code'}
+          </button>
+        </form>
+      )}
+    </div>
+    <div class='footer'>
+      <div>
+        <a class='login' href='/login'>
+          Back to Login?
+        </a>
+      </div>
+    </div>
+  </div>
+</PublicLayout>
+
+<script is:inline>
+  (function () {
+    const btn = document.getElementById('resend-btn');
+    if (!btn) return;
+
+    let secondsLeft = parseInt(btn.dataset.countdown, 10);
+
+    if (isNaN(secondsLeft) || secondsLeft <= 0) {
+      btn.disabled = false;
+      btn.textContent = 'Resend Code';
+      return;
+    }
+
+    const interval = setInterval(() => {
+      secondsLeft--;
+
+      if (secondsLeft <= 0) {
+        clearInterval(interval);
+        btn.disabled = false;
+        btn.textContent = 'Resend Code';
+      } else {
+        btn.textContent = `Resend in ${secondsLeft}s`;
+      }
+    }, 1000);
+  })();
+</script>
