@@ -1,5 +1,6 @@
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import { Code, ConnectError } from "@connectrpc/connect";
+import type { AstroCookies } from "astro";
 import {
   type ActionAPIContext,
   ActionError,
@@ -24,6 +25,21 @@ export const setCookies = (
     secure: import.meta.env.PROD,
     sameSite: "strict",
     expires: new Date(Number(expireAt.seconds) * 1000),
+  });
+};
+
+export const setCookiesPage = (
+  cookies: AstroCookies,
+  key: string,
+  value: string,
+  maxAge: number,
+) => {
+  cookies.set(key, value, {
+    path: "/",
+    httpOnly: true,
+    sameSite: "strict",
+    secure: import.meta.env.PROD,
+    maxAge: maxAge,
   });
 };
 

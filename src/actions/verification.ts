@@ -7,14 +7,30 @@ import {
   COOKIES_KEY_SESSION,
   COOKIES_KEY_VERIFICATION,
   COOKIES_KEY_VERIFICATION_METHOD,
+  COOKIES_KEY_VERIFICATION_METHOD_TYPE,
 } from "../constants/cookies";
 import { codeSchema } from "../validation";
 import { gRPCToHttpError, sessionExpired, setCookies } from "./utils";
 
-const schema = z.object({
-  code: z.string().min(1, "Code is required"),
-  method: z.enum(["email", "totp", "recovery"]),
-});
+const schema = z
+  .object({
+    code: z
+      .string()
+      .or(z.null())
+      .transform((val) => val ?? ""),
+    method: z.enum(["email", "totp", "recovery"]),
+  })
+  .superRefine(({ code, method }, ctx) => {
+    const specializedSchema = codeSchema(method);
+    const result = specializedSchema.safeParse(code);
+    if (!result.success) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Enter a valid code",
+        path: ["code"],
+      });
+    }
+  });
 
 export const verification = defineAction({
   accept: "form",
@@ -94,5 +110,21 @@ export const verification = defineAction({
         );
         return { next: "/reset-password" };
     }
+  },
+});
+
+export const verificationMethodToggle = defineAction({
+  input: z.object({
+    method: z.enum(["totp", "recovery"]),
+  }),
+  handler: async (input, context) => {
+    context.cookies.set(COOKIES_KEY_VERIFICATION_METHOD_TYPE, input.method, {
+      path: "/",
+      httpOnly: true,
+      secure: import.meta.env.PROD,
+      sameSite: "strict",
+      maxAge: 300,
+    });
+    return { next: "/verification" };
   },
 });

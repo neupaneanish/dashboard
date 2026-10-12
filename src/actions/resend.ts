@@ -8,6 +8,7 @@ import {
 import { gRPCToHttpError, sessionExpired, setCookies } from "./utils";
 
 export const resend = defineAction({
+  accept: "form",
   handler: async (_, context) => {
     const sessionCookies = context.cookies.get(COOKIES_KEY_VERIFICATION);
     const sessionMethodCookies = context.cookies.get(
