@@ -2,6 +2,7 @@ import { ActionError, defineAction } from "astro:actions";
 
 import { COOKIES_KEY_VERIFICATION } from "../constants/cookies";
 import { externalAuthenticationClient } from "../libs/grpc";
+import type { VerificationSession } from "../protobuf/external/authentication/v1/authentication_pb";
 import { parsedVerification } from "../utils";
 import {
   gRPCToHttpError,
@@ -31,7 +32,7 @@ export const resend = defineAction({
       });
     }
 
-    const remaining = cookies.expires.getTime() - new Date().getTime();
+    const remaining = cookies.expires.getTime() - Date.now();
 
     if (remaining <= 0) {
       sessionExpired(context, "Verification");
@@ -41,16 +42,14 @@ export const resend = defineAction({
       });
     }
 
-    // Max 5 minutes
-    if (remaining > 300000) {
-      sessionExpired(context, "Verification");
-      throw new ActionError({
-        code: "UNAUTHORIZED",
-        message: "Session expired",
-      });
-    }
-    // Min 2 minutes
-    if (remaining > 180000) {
+    if (!(remaining >= 0 && remaining <= 180000)) {
+      if (remaining < 0 || remaining > 300000) {
+        sessionExpired(context, "Verification");
+        throw new ActionError({
+          code: "UNAUTHORIZED",
+          message: "Invalid session state detected.",
+        });
+      }
       throw new ActionError({
         code: "PRECONDITION_FAILED",
         message: "Please wait before requesting a new code.",
@@ -61,6 +60,13 @@ export const resend = defineAction({
       .resend({ session: cookies.session })
       .catch(gRPCToHttpError);
 
-    return verificationSessionCookies(context, res.verification);
+    const verification: VerificationSession = {
+      $typeName: "external.authentication.v1.VerificationSession",
+      expires: res.expires,
+      session: res.session,
+      method: cookies.method,
+    };
+
+    return verificationSessionCookies(context, verification);
   },
 });
