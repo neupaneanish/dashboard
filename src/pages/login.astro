@@ -5,6 +5,9 @@ import {
   COOKIES_KEY_SESSION_EXPIRED,
 } from '../constants/cookies';
 import { actions, isInputError, isActionError } from 'astro:actions';
+import { deletePublicCookies } from '../utils';
+
+deletePublicCookies(Astro.cookies);
 
 if (Astro.cookies.has(COOKIES_KEY_SESSION)) {
   return Astro.redirect('/');
@@ -17,14 +20,6 @@ if (sessionExpired) {
 }
 
 const response = Astro.getActionResult(actions.login);
-
-const isPost = Astro.request.method === 'POST';
-const values = isPost
-  ? (Object.fromEntries(await Astro.request.clone().formData()) as Record<
-      string,
-      string
-    >)
-  : ({} as Record<string, string>);
 
 if (response?.data) {
   return Astro.redirect(response.data.next);
@@ -62,7 +57,7 @@ const serverError =
           name='email'
           placeholder='Enter an email'
           type='email'
-          value={values.email || ''}
+          transition:persist
           autocomplete='off'
         />
         <div class='errors'>
@@ -76,7 +71,7 @@ const serverError =
           name='password'
           placeholder='Enter a password'
           type='password'
-          value={values.password || ''}
+          transition:persist
           autocomplete='off'
         />
         <div class='errors'>

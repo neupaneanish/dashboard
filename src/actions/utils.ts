@@ -1,6 +1,5 @@
-import type { Timestamp } from "@bufbuild/protobuf/wkt";
+import { type Timestamp, timestampDate } from "@bufbuild/protobuf/wkt";
 import { Code, ConnectError } from "@connectrpc/connect";
-import type { AstroCookies } from "astro";
 import {
   type ActionAPIContext,
   ActionError,
@@ -8,10 +7,11 @@ import {
 } from "astro:actions";
 
 import {
+  COOKIES_KEY_SESSION_EXPIRED,
   COOKIES_KEY_VERIFICATION,
-  COOKIES_KEY_VERIFICATION_METHOD,
 } from "../constants/cookies";
-import type { VerificationSession } from "../protobuf/external/authentication/v1/authentication_pb";
+import { type VerificationSession } from "../protobuf/external/authentication/v1/authentication_pb";
+import type { Verification } from "../utils";
 
 export const setCookies = (
   context: ActionAPIContext,
@@ -24,22 +24,7 @@ export const setCookies = (
     httpOnly: true,
     secure: import.meta.env.PROD,
     sameSite: "strict",
-    expires: new Date(Number(expireAt.seconds) * 1000),
-  });
-};
-
-export const setCookiesPage = (
-  cookies: AstroCookies,
-  key: string,
-  value: string,
-  maxAge: number,
-) => {
-  cookies.set(key, value, {
-    path: "/",
-    httpOnly: true,
-    sameSite: "strict",
-    secure: import.meta.env.PROD,
-    maxAge: maxAge,
+    expires: timestampDate(expireAt),
   });
 };
 
@@ -97,11 +82,11 @@ export const gRPCToHttpError = (e: unknown) => {
 };
 
 export const sessionExpired = (context: ActionAPIContext, page: string) => {
-  context.cookies.set("session-expired", page, {
+  context.cookies.set(COOKIES_KEY_SESSION_EXPIRED, page, {
     path: "/",
     httpOnly: true,
     sameSite: "strict",
-    maxAge: 60,
+    expires: new Date(Date.now() + 60000),
   });
 };
 
@@ -109,24 +94,31 @@ export const verificationSession = (
   context: ActionAPIContext,
   verification: VerificationSession | undefined,
 ) => {
-  if (!verification || !verification.expireAt) {
+  verificationSessionCookies(context, verification);
+  return { next: "/verification" };
+};
+
+export const verificationSessionCookies = (
+  context: ActionAPIContext,
+  verification: VerificationSession | undefined,
+) => {
+  if (!verification || !verification.expires) {
     throw new ActionError({
       code: "INTERNAL_SERVER_ERROR",
       message: "Something went wrong",
     });
   }
 
+  const session: Verification = {
+    session: verification.session,
+    method: verification.method,
+    expires: timestampDate(verification.expires),
+  };
+
   setCookies(
     context,
     COOKIES_KEY_VERIFICATION,
-    verification.session,
-    verification.expireAt,
+    JSON.stringify(session),
+    verification.expires,
   );
-  setCookies(
-    context,
-    COOKIES_KEY_VERIFICATION_METHOD,
-    verification.method.toString(),
-    verification.expireAt,
-  );
-  return { next: "/verification" };
 };

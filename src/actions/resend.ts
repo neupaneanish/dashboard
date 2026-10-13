@@ -1,24 +1,20 @@
 import { ActionError, defineAction } from "astro:actions";
 
-import { externalAuthenticationClient } from "../client/grpc";
+import { COOKIES_KEY_VERIFICATION } from "../constants/cookies";
+import { externalAuthenticationClient } from "../libs/grpc";
+import { parsedVerification } from "../utils";
 import {
-  COOKIES_KEY_VERIFICATION,
-  COOKIES_KEY_VERIFICATION_METHOD,
-} from "../constants/cookies";
-import { gRPCToHttpError, sessionExpired, setCookies } from "./utils";
+  gRPCToHttpError,
+  sessionExpired,
+  verificationSessionCookies,
+} from "./utils";
 
 export const resend = defineAction({
   accept: "form",
   handler: async (_, context) => {
-    const sessionCookies = context.cookies.get(COOKIES_KEY_VERIFICATION);
-    const sessionMethodCookies = context.cookies.get(
-      COOKIES_KEY_VERIFICATION_METHOD,
-    );
+    const sessionCookies = context.cookies.get(COOKIES_KEY_VERIFICATION)?.value;
 
-    const session = sessionCookies?.value;
-    const sessionMethod = sessionMethodCookies?.value;
-
-    if (!session || !sessionMethod) {
+    if (!sessionCookies) {
       sessionExpired(context, "Verification");
       throw new ActionError({
         code: "UNAUTHORIZED",
@@ -26,23 +22,45 @@ export const resend = defineAction({
       });
     }
 
-    const res = await externalAuthenticationClient
-      .resend({ session: session })
-      .catch(gRPCToHttpError);
+    const cookies = parsedVerification(sessionCookies);
 
-    if (!res.expireAt) {
+    if (!cookies) {
       throw new ActionError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Something went wrong",
+        code: "UNAUTHORIZED",
+        message: "Session expired",
       });
     }
 
-    setCookies(context, COOKIES_KEY_VERIFICATION, res.session, res.expireAt);
-    setCookies(
-      context,
-      COOKIES_KEY_VERIFICATION_METHOD,
-      sessionMethod,
-      res.expireAt,
-    );
+    const remaining = cookies.expires.getTime() - new Date().getTime();
+
+    if (remaining <= 0) {
+      sessionExpired(context, "Verification");
+      throw new ActionError({
+        code: "UNAUTHORIZED",
+        message: "Session expired",
+      });
+    }
+
+    // Max 5 minutes
+    if (remaining > 300000) {
+      sessionExpired(context, "Verification");
+      throw new ActionError({
+        code: "UNAUTHORIZED",
+        message: "Session expired",
+      });
+    }
+    // Min 2 minutes
+    if (remaining > 180000) {
+      throw new ActionError({
+        code: "PRECONDITION_FAILED",
+        message: "Please wait before requesting a new code.",
+      });
+    }
+
+    const res = await externalAuthenticationClient
+      .resend({ session: cookies.session })
+      .catch(gRPCToHttpError);
+
+    return verificationSessionCookies(context, res.verification);
   },
 });

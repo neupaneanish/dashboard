@@ -1,16 +1,22 @@
+import { timestampFromDate } from "@bufbuild/protobuf/wkt";
 import { z } from "astro/zod";
 import { ActionError, defineAction } from "astro:actions";
 
-import { externalAuthenticationClient } from "../client/grpc";
 import {
   COOKIES_KEY_RESET,
   COOKIES_KEY_SESSION,
   COOKIES_KEY_VERIFICATION,
   COOKIES_KEY_VERIFICATION_METHOD,
-  COOKIES_KEY_VERIFICATION_METHOD_TYPE,
 } from "../constants/cookies";
+import { externalAuthenticationClient } from "../libs/grpc";
+import { parsedVerification } from "../utils";
 import { codeSchema } from "../validation";
-import { gRPCToHttpError, sessionExpired, setCookies } from "./utils";
+import {
+  gRPCToHttpError,
+  sessionExpired,
+  setCookies,
+  verificationSessionCookies,
+} from "./utils";
 
 const schema = z
   .object({
@@ -36,15 +42,9 @@ export const verification = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    const sessionCookies = context.cookies.get(COOKIES_KEY_VERIFICATION);
-    const sessionMethodCookies = context.cookies.get(
-      COOKIES_KEY_VERIFICATION_METHOD,
-    );
+    const sessionCookies = context.cookies.get(COOKIES_KEY_VERIFICATION)?.value;
 
-    const session = sessionCookies?.value;
-    const sessionMethod = sessionMethodCookies?.value;
-
-    if (!session || !sessionMethod) {
+    if (!sessionCookies) {
       sessionExpired(context, "Verification");
       throw new ActionError({
         code: "UNAUTHORIZED",
@@ -52,12 +52,12 @@ export const verification = defineAction({
       });
     }
 
-    const result = codeSchema(input.method).safeParse(input.code);
+    const cookies = parsedVerification(sessionCookies);
 
-    if (!result.success) {
+    if (!cookies) {
       throw new ActionError({
-        code: "BAD_REQUEST",
-        message: JSON.stringify({ code: ["Enter a valid code"] }),
+        code: "UNAUTHORIZED",
+        message: "Session expired",
       });
     }
 
@@ -67,11 +67,11 @@ export const verification = defineAction({
           case: input.method,
           value: input.code,
         },
-        session: session,
+        session: cookies.session,
       })
       .catch(gRPCToHttpError);
 
-    if (!res.response.value || !res.response.value.expireAt) {
+    if (!res.response.value || !res.response.value.expires) {
       throw new ActionError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Something went wrong",
@@ -84,47 +84,54 @@ export const verification = defineAction({
           context,
           COOKIES_KEY_SESSION,
           res.response.value.session,
-          res.response.value.expireAt,
+          res.response.value.expires,
         );
         return { next: "/" };
-      case "verification":
-        setCookies(
-          context,
-          COOKIES_KEY_VERIFICATION,
-          res.response.value.session,
-          res.response.value.expireAt,
-        );
-        setCookies(
-          context,
-          COOKIES_KEY_VERIFICATION_METHOD,
-          res.response.value.method.toString(),
-          res.response.value.expireAt,
-        );
-        break;
+      case "verification": {
+        return verificationSessionCookies(context, res.response.value);
+      }
       case "resetSession":
         setCookies(
           context,
           COOKIES_KEY_RESET,
           res.response.value.session,
-          res.response.value.expireAt,
+          res.response.value.expires,
         );
         return { next: "/reset-password" };
     }
   },
 });
 
-export const verificationMethodToggle = defineAction({
+export const verificationMethod = defineAction({
+  accept: "form",
   input: z.object({
     method: z.enum(["totp", "recovery"]),
   }),
   handler: async (input, context) => {
-    context.cookies.set(COOKIES_KEY_VERIFICATION_METHOD_TYPE, input.method, {
-      path: "/",
-      httpOnly: true,
-      secure: import.meta.env.PROD,
-      sameSite: "strict",
-      maxAge: 300,
-    });
-    return { next: "/verification" };
+    const sessionCookies = context.cookies.get(COOKIES_KEY_VERIFICATION)?.value;
+
+    if (!sessionCookies) {
+      sessionExpired(context, "Verification");
+      throw new ActionError({
+        code: "UNAUTHORIZED",
+        message: "Session expired",
+      });
+    }
+
+    const cookies = parsedVerification(sessionCookies);
+
+    if (!cookies) {
+      sessionExpired(context, "Verification");
+      throw new ActionError({
+        code: "UNAUTHORIZED",
+        message: "Session expired",
+      });
+    }
+    setCookies(
+      context,
+      COOKIES_KEY_VERIFICATION_METHOD,
+      input.method,
+      timestampFromDate(cookies.expires),
+    );
   },
 });

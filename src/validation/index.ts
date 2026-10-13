@@ -1,5 +1,5 @@
 import { z } from "astro/zod";
-import { parsePhoneNumberWithError } from "libphonenumber-js/mobile";
+import { parsePhoneNumberWithError } from "libphonenumber-js";
 
 export const passwordSchema = () => {
   return z

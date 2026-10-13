@@ -1,12 +1,13 @@
+import { timestampDate } from "@bufbuild/protobuf/wkt";
 import { z } from "astro/zod";
 import { ActionError, defineAction } from "astro:actions";
 
-import { externalAuthenticationClient } from "../client/grpc";
 import {
   COOKIES_KEY_SESSION,
   COOKIES_KEY_VERIFICATION,
-  COOKIES_KEY_VERIFICATION_METHOD,
 } from "../constants/cookies";
+import { externalAuthenticationClient } from "../libs/grpc";
+import type { Verification } from "../utils";
 import { passwordSchema } from "../validation";
 import { gRPCToHttpError, setCookies } from "./utils";
 
@@ -49,7 +50,7 @@ export const login = defineAction({
       })
       .catch(gRPCToHttpError);
 
-    if (!res.response.value || !res.response.value.expireAt) {
+    if (!res.response.value || !res.response.value.expires) {
       throw new ActionError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Something went wrong",
@@ -62,23 +63,23 @@ export const login = defineAction({
           context,
           COOKIES_KEY_SESSION,
           res.response.value.session,
-          res.response.value.expireAt,
+          res.response.value.expires,
         );
         return { next: "/" };
-      case "verification":
+      case "verification": {
+        const session: Verification = {
+          session: res.response.value.session,
+          method: res.response.value.method,
+          expires: timestampDate(res.response.value.expires),
+        };
         setCookies(
           context,
           COOKIES_KEY_VERIFICATION,
-          res.response.value.session,
-          res.response.value.expireAt,
-        );
-        setCookies(
-          context,
-          COOKIES_KEY_VERIFICATION_METHOD,
-          res.response.value.method.toString(),
-          res.response.value.expireAt,
+          JSON.stringify(session),
+          res.response.value.expires,
         );
         return { next: "/verification" };
+      }
     }
   },
 });

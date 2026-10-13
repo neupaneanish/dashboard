@@ -1,7 +1,7 @@
 import { z } from "astro/zod";
 import { defineAction } from "astro:actions";
 
-import { externalAuthenticationClient } from "../client/grpc";
+import { externalAuthenticationClient } from "../libs/grpc";
 import { mobileSchema, passwordSchema } from "../validation";
 import { gRPCToHttpError, verificationSession } from "./utils";
 
@@ -29,9 +29,7 @@ const schema = z
           .regex(/^[a-z]+[0-9]*$/, "Enter a valid username"),
       ),
     phone: z
-      .string()
-      .or(z.null())
-      .transform((val) => val ?? "")
+      .e164("Mobile number must be international format")
       .pipe(mobileSchema()),
   })
   .superRefine(({ password, confirmPassword }, ctx) => {

@@ -1,7 +1,7 @@
 import { z } from "astro/zod";
 import { defineAction } from "astro:actions";
 
-import { externalAuthenticationClient } from "../client/grpc";
+import { externalAuthenticationClient } from "../libs/grpc";
 import { gRPCToHttpError, verificationSession } from "./utils";
 
 const schema = z.object({

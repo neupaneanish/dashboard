@@ -1,8 +1,8 @@
 import { z } from "astro/zod";
 import { ActionError, defineAction } from "astro:actions";
 
-import { externalAuthenticationClient } from "../client/grpc";
 import { COOKIES_KEY_RESET } from "../constants/cookies";
+import { externalAuthenticationClient } from "../libs/grpc";
 import { passwordSchema } from "../validation";
 import { gRPCToHttpError, sessionExpired } from "./utils";
 
