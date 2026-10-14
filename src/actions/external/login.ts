@@ -8,7 +8,7 @@ import {
 } from "../../constants/cookies";
 import { externalAuthenticationClient } from "../../libs/grpc.ts";
 import type { Verification } from "../../utils";
-import { passwordSchema } from "../../validation";
+import { passwordValidation } from "../../validation";
 import { gRPCToHttpError, setCookies } from "../utils.ts";
 
 const schema = z.object({
@@ -16,27 +16,7 @@ const schema = z.object({
     .string()
     .min(1, "Email is required")
     .pipe(z.email("Enter a valid email")),
-  password: z
-    .string()
-    .or(z.null())
-    .transform((val) => val ?? "")
-    .pipe(
-      z
-        .string()
-        .min(1, "Password is required")
-        .pipe(
-          z.string().superRefine((val, ctx) => {
-            const isValid = passwordSchema().safeParse(val).success;
-            if (!isValid) {
-              ctx.addIssue({
-                code: "custom",
-                message: "Enter a valid password",
-                fatal: true,
-              });
-            }
-          }),
-        ),
-    ),
+  password: passwordValidation(),
 });
 
 export const login = defineAction({

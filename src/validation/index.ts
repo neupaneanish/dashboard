@@ -59,3 +59,26 @@ export const mobileSchema = () => {
       }
     });
 };
+
+export const passwordValidation = () =>
+  z
+    .string()
+    .or(z.null())
+    .transform((val) => val ?? "")
+    .pipe(
+      z
+        .string()
+        .min(1, "Password is required")
+        .pipe(
+          z.string().superRefine((val, ctx) => {
+            const isValid = passwordSchema().safeParse(val).success;
+            if (!isValid) {
+              ctx.addIssue({
+                code: "custom",
+                message: "Enter a valid password",
+                fatal: true,
+              });
+            }
+          }),
+        ),
+    );
