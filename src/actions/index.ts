@@ -1,16 +1,7 @@
-import { forgetPassword } from "./forgetPassword";
-import { login } from "./login";
-import { register } from "./register";
-import { resend } from "./resend";
-import { resetPassword } from "./resetPassword";
-import { verification, verificationMethod } from "./verification";
+import { external } from "./external";
+import { root } from "./root";
 
 export const server = {
-  forgetPassword,
-  login,
-  register,
-  resend,
-  resetPassword,
-  verification,
-  verificationMethod,
+  external,
+  root,
 };

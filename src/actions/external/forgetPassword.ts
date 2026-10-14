@@ -1,8 +1,8 @@
 import { z } from "astro/zod";
 import { defineAction } from "astro:actions";
 
-import { externalAuthenticationClient } from "../libs/grpc";
-import { gRPCToHttpError, verificationSession } from "./utils";
+import { externalAuthenticationClient } from "../../libs/grpc.ts";
+import { gRPCToHttpError, verificationSession } from "../utils.ts";
 
 const schema = z.object({
   email: z.email("Enter a valid email"),

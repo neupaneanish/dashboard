@@ -18,7 +18,7 @@ if (Astro.cookies.has(COOKIES_KEY_SESSION_EXPIRED)) {
   return Astro.redirect('/login');
 }
 
-const response = Astro.getActionResult(actions.register);
+const response = Astro.getActionResult(actions.external.register);
 
 if (response?.data) {
   return Astro.redirect(response.data.next);
@@ -60,7 +60,7 @@ const serverError =
         <p>{serverError}</p>
       </div>
     )}
-    <form class='form' method='post' action={actions.register}>
+    <form class='form' method='post' action={actions.external.register}>
       <div class='form-group'>
         <label for='email'>Email</label>
         <input

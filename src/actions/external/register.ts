@@ -1,9 +1,9 @@
 import { z } from "astro/zod";
 import { defineAction } from "astro:actions";
 
-import { externalAuthenticationClient } from "../libs/grpc";
-import { mobileSchema, passwordSchema } from "../validation";
-import { gRPCToHttpError, verificationSession } from "./utils";
+import { externalAuthenticationClient } from "../../libs/grpc.ts";
+import { mobileSchema, passwordSchema } from "../../validation";
+import { gRPCToHttpError, verificationSession } from "../utils.ts";
 
 const schema = z
   .object({

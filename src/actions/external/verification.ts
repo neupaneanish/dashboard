@@ -7,16 +7,16 @@ import {
   COOKIES_KEY_SESSION,
   COOKIES_KEY_VERIFICATION,
   COOKIES_KEY_VERIFICATION_METHOD,
-} from "../constants/cookies";
-import { externalAuthenticationClient } from "../libs/grpc";
-import { parsedVerification } from "../utils";
-import { codeSchema } from "../validation";
+} from "../../constants/cookies";
+import { externalAuthenticationClient } from "../../libs/grpc.ts";
+import { parsedVerification } from "../../utils";
+import { codeSchema } from "../../validation";
 import {
   gRPCToHttpError,
   sessionExpired,
   setCookies,
   verificationSessionCookies,
-} from "./utils";
+} from "../utils.ts";
 
 const schema = z
   .object({

@@ -5,11 +5,11 @@ import { ActionError, defineAction } from "astro:actions";
 import {
   COOKIES_KEY_SESSION,
   COOKIES_KEY_VERIFICATION,
-} from "../constants/cookies";
-import { externalAuthenticationClient } from "../libs/grpc";
-import type { Verification } from "../utils";
-import { passwordSchema } from "../validation";
-import { gRPCToHttpError, setCookies } from "./utils";
+} from "../../constants/cookies";
+import { externalAuthenticationClient } from "../../libs/grpc.ts";
+import type { Verification } from "../../utils";
+import { passwordSchema } from "../../validation";
+import { gRPCToHttpError, setCookies } from "../utils.ts";
 
 const schema = z.object({
   email: z.coerce

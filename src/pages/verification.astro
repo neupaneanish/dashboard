@@ -90,8 +90,8 @@ if (method === '' || heading === '') {
   return Astro.redirect('/login');
 }
 
-const response = Astro.getActionResult(actions.verification);
-const resendResponse = Astro.getActionResult(actions.resend);
+const response = Astro.getActionResult(actions.external.verification);
+const resendResponse = Astro.getActionResult(actions.external.resend);
 
 if (response?.data) {
   return Astro.redirect(response.data.next);
@@ -165,7 +165,7 @@ const resendInitText = `Resend in ${remainingSeconds}s`;
         <p>{serverError}</p>
       </div>
     )}
-    <form class='form' method='post' action={actions.verification}>
+    <form class='form' method='post' action={actions.external.verification}>
       <input type='hidden' name='method' value={method} />
       <div class='form-group'>
         <label for='code'>Code</label>
@@ -190,7 +190,7 @@ const resendInitText = `Resend in ${remainingSeconds}s`;
     </form>
     <div style='margin: 1rem 0'>
       {cookies.method === VerificationMethod.TWO_FACTOR ? (
-        <form method='post' action={actions.verificationMethod}>
+        <form method='post' action={actions.external.verificationMethod}>
           <input
             type='hidden'
             name='currentTarget'
@@ -201,7 +201,7 @@ const resendInitText = `Resend in ${remainingSeconds}s`;
           </button>
         </form>
       ) : (
-        <form method='post' action={actions.resend}>
+        <form method='post' action={actions.external.resend}>
           <button
             id='resend-btn'
             class='btn btn-orange'

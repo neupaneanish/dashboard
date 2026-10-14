@@ -1,10 +1,10 @@
 import { z } from "astro/zod";
 import { ActionError, defineAction } from "astro:actions";
 
-import { COOKIES_KEY_RESET } from "../constants/cookies";
-import { externalAuthenticationClient } from "../libs/grpc";
-import { passwordSchema } from "../validation";
-import { gRPCToHttpError, sessionExpired } from "./utils";
+import { COOKIES_KEY_RESET } from "../../constants/cookies";
+import { externalAuthenticationClient } from "../../libs/grpc.ts";
+import { passwordSchema } from "../../validation";
+import { gRPCToHttpError, sessionExpired } from "../utils.ts";
 
 const schema = z
   .object({

@@ -19,7 +19,7 @@ if (sessionExpired) {
   Astro.cookies.delete(COOKIES_KEY_SESSION_EXPIRED, { path: '/' });
 }
 
-const response = Astro.getActionResult(actions.login);
+const response = Astro.getActionResult(actions.external.login);
 
 if (response?.data) {
   return Astro.redirect(response.data.next);
@@ -49,7 +49,12 @@ const serverError =
         <p>{serverError}</p>
       </div>
     )}
-    <form id='login-form' class='form' method='post' action={actions.login}>
+    <form
+      id='login-form'
+      class='form'
+      method='post'
+      action={actions.external.login}
+    >
       <div class='form-group'>
         <label for='email'>Email</label>
         <input
