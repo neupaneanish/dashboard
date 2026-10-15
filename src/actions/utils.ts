@@ -62,9 +62,15 @@ export const gRPCToHttpError = (e: unknown) => {
   if (e instanceof ConnectError) {
     throw new ActionError({
       code: gRPCCode(e.code),
-      message: e.rawMessage,
+      message: e.rawMessage || "Something went wrong",
     });
   } else {
+    if (e instanceof Error) {
+      throw new ActionError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: e.message || "Something went wrong",
+      });
+    }
     throw new ActionError({
       code: "INTERNAL_SERVER_ERROR",
       message: "Something went wrong",
@@ -76,20 +82,10 @@ export const gRPCToHttpErrorPrivate = (
   e: unknown,
   context: ActionAPIContext,
 ) => {
-  if (e instanceof ConnectError) {
-    if (e.code === Code.Unauthenticated) {
-      deletePrivateCookies(context);
-    }
-    throw new ActionError({
-      code: gRPCCode(e.code),
-      message: e.rawMessage,
-    });
-  } else {
-    throw new ActionError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "Something went wrong",
-    });
+  if (e instanceof ConnectError && e.code === Code.Unauthenticated) {
+    deletePrivateCookies(context);
   }
+  throw gRPCToHttpError(e);
 };
 
 export const gRPCToHttpErrorPrivateSession = (
@@ -105,16 +101,8 @@ export const gRPCToHttpErrorPrivateSession = (
       deletePrivateCookiesOnly(context);
       cookiesExpired(context, COOKIES_KEY_SESSION_VERIFICATION_EXPIRED, value);
     }
-    throw new ActionError({
-      code: gRPCCode(e.code),
-      message: e.rawMessage,
-    });
-  } else {
-    throw new ActionError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "Something went wrong",
-    });
   }
+  throw gRPCToHttpError(e);
 };
 
 export const gRPCToHttpErrorPublic = (
@@ -122,20 +110,13 @@ export const gRPCToHttpErrorPublic = (
   context: ActionAPIContext,
   value: string,
 ) => {
-  if (e instanceof ConnectError) {
-    if (e.code === Code.FailedPrecondition || e.code === Code.Unauthenticated) {
-      deletePublicCookies(context, value);
-    }
-    throw new ActionError({
-      code: gRPCCode(e.code),
-      message: e.rawMessage,
-    });
-  } else {
-    throw new ActionError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "Something went wrong",
-    });
+  if (
+    e instanceof ConnectError &&
+    (e.code === Code.FailedPrecondition || e.code === Code.Unauthenticated)
+  ) {
+    deletePublicCookies(context, value);
   }
+  throw gRPCToHttpError(e);
 };
 
 export const verificationSession = (

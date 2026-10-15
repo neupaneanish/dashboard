@@ -1,10 +1,12 @@
 import { defineAction } from "astro:actions";
 
 import { rootAuthenticationClient } from "../../libs/grpc.ts";
-import { gRPCToHttpError } from "../utils.ts";
+import { gRPCToHttpErrorPrivate } from "../utils.ts";
 
 export const users = defineAction({
-  handler: async () => {
-    return await rootAuthenticationClient.users({}).catch(gRPCToHttpError);
+  handler: async (_, context) => {
+    return await rootAuthenticationClient
+      .users({})
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

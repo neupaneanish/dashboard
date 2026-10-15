@@ -3,7 +3,7 @@ import { z } from "astro/zod";
 import { defineAction } from "astro:actions";
 
 import { rootAuthenticationClient } from "../../libs/grpc";
-import { gRPCToHttpError } from "../utils";
+import { gRPCToHttpErrorPrivate } from "../utils";
 
 const schema = z.object({
   id: z.uuidv7(),
@@ -23,7 +23,7 @@ const schema = z.object({
 export const updateUsername = defineAction({
   accept: "form",
   input: schema,
-  handler: async (input) => {
+  handler: async (input, context) => {
     return await rootAuthenticationClient
       .updateUsername({
         id: input.id,
@@ -32,6 +32,6 @@ export const updateUsername = defineAction({
           updatedAt: timestampFromDate(input.updatedAt),
         },
       })
-      .catch(gRPCToHttpError);
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });
