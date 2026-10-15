@@ -5,18 +5,25 @@ import {
   COOKIES_KEY_SESSION_EXPIRED,
 } from '../constants/cookies';
 import { actions, isInputError, isActionError } from 'astro:actions';
-import { deletePublicCookies } from '../utils';
+import { removePublicCookies } from '../utils/cookies';
 
-deletePublicCookies(Astro.cookies);
+removePublicCookies(Astro.cookies);
 
 if (Astro.cookies.has(COOKIES_KEY_SESSION)) {
   return Astro.redirect('/');
 }
 
 const sessionExpired = Astro.cookies.get(COOKIES_KEY_SESSION_EXPIRED)?.value;
+const session = Astro.cookies.get(COOKIES_KEY_SESSION)?.value;
 
+// TODO: Show Dialog
 if (sessionExpired) {
   Astro.cookies.delete(COOKIES_KEY_SESSION_EXPIRED, { path: '/' });
+}
+
+// TODO: Show Dialog
+if (session) {
+  Astro.cookies.delete(COOKIES_KEY_SESSION, { path: '/' });
 }
 
 const response = Astro.getActionResult(actions.external.login);

@@ -1,10 +1,11 @@
 import { z } from "astro/zod";
 import { ActionError, defineAction } from "astro:actions";
 
-import { COOKIES_KEY_RESET } from "../../constants/cookies";
-import { externalAuthenticationClient } from "../../libs/grpc.ts";
+import { COOKIES_KEY_RESET_PASSWORD } from "../../constants/cookies";
+import { externalAuthenticationClient } from "../../libs/grpc";
+import { deletePublicCookies } from "../../utils/cookies";
 import { passwordSchema } from "../../validation";
-import { gRPCToHttpError, sessionExpired } from "../utils.ts";
+import { gRPCToHttpErrorPublic } from "../utils";
 
 const schema = z
   .object({
@@ -33,12 +34,10 @@ export const resetPassword = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    const sessionCookies = context.cookies.get(COOKIES_KEY_RESET);
+    const cookies = context.cookies.get(COOKIES_KEY_RESET_PASSWORD)?.value;
 
-    const session = sessionCookies?.value;
-
-    if (!session) {
-      sessionExpired(context, "Reset Password");
+    if (!cookies) {
+      deletePublicCookies(context, "Reset Password");
       throw new ActionError({
         code: "UNAUTHORIZED",
         message: "Session expired",
@@ -49,10 +48,9 @@ export const resetPassword = defineAction({
       .resetPassword({
         password: { value: input.password },
         confirmPassword: { value: input.confirmPassword },
-        session: session,
+        session: cookies,
       })
-      .catch(gRPCToHttpError);
-    context.cookies.delete(COOKIES_KEY_RESET, { path: "/" });
+      .catch((e) => gRPCToHttpErrorPublic(e, context, "Reset Password"));
     return { next: "/login" };
   },
 });

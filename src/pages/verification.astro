@@ -1,12 +1,6 @@
 ---
+import { actions, isInputError, isActionError } from 'astro:actions';
 import {
-  actions,
-  isInputError,
-  isActionError,
-  ActionError,
-} from 'astro:actions';
-import {
-  COOKIES_KEY_RESET,
   COOKIES_KEY_SESSION,
   COOKIES_KEY_SESSION_EXPIRED,
   COOKIES_KEY_VERIFICATION,
@@ -14,23 +8,21 @@ import {
 } from '../constants/cookies';
 import PublicLayout from '../layouts/PublicLayout.astro';
 import { VerificationMethod } from '../protobuf/external/authentication/v1/authentication_pb';
-import { parsedVerification, setCookiesPage } from '../utils';
-
-Astro.cookies.delete(COOKIES_KEY_RESET, { path: '/' });
+import type { Verification } from '../utils';
+import { VerificationHeading } from '../utils/heading';
 
 if (Astro.cookies.has(COOKIES_KEY_SESSION)) {
   return Astro.redirect('/');
 }
 
-const sessionCookies = Astro.cookies.get(COOKIES_KEY_VERIFICATION)?.value;
+const cookies: Verification | undefined = Astro.cookies
+  .get(COOKIES_KEY_VERIFICATION)
+  ?.json();
 
-if (!sessionCookies || Astro.cookies.has(COOKIES_KEY_SESSION_EXPIRED)) {
-  return Astro.redirect('/login');
-}
-
-const cookies = parsedVerification(sessionCookies);
-
-if (!cookies) {
+if (
+  Astro.cookies.has(COOKIES_KEY_SESSION_EXPIRED) ||
+  !(cookies && cookies.session && cookies.method && cookies.expires)
+) {
   return Astro.redirect('/login');
 }
 
@@ -38,12 +30,6 @@ let method = Astro.cookies.get(COOKIES_KEY_VERIFICATION_METHOD)?.value;
 
 if (cookies.method === VerificationMethod.TWO_FACTOR && !method) {
   method = 'totp';
-  setCookiesPage(
-    Astro.cookies,
-    COOKIES_KEY_VERIFICATION_METHOD,
-    'totp',
-    cookies.expires
-  );
 }
 
 let hint: string = '';
@@ -71,22 +57,9 @@ const methodValue = (() => {
   }
 })();
 
-const heading = (() => {
-  switch (cookies.method) {
-    case VerificationMethod.ACCOUNT:
-      return 'Account Verification';
-    case VerificationMethod.EMAIL:
-      return 'Email Verification';
-    case VerificationMethod.RESET:
-      return 'Reset Verification';
-    case VerificationMethod.TWO_FACTOR:
-      return '2FA Verification';
-    default:
-      return '';
-  }
-})();
+const heading = VerificationHeading(cookies.method);
 
-if (method === '' || heading === '') {
+if (methodValue === '' || heading === 'Verification') {
   return Astro.redirect('/login');
 }
 
@@ -95,28 +68,6 @@ const resendResponse = Astro.getActionResult(actions.external.resend);
 
 if (response?.data) {
   return Astro.redirect(response.data.next);
-}
-
-const isVerificationError =
-  response?.error &&
-  isActionError(response.error) &&
-  !isInputError(response.error) &&
-  response.error.code === 'EXPECTATION_FAILED';
-
-const isResendError =
-  resendResponse?.error &&
-  isActionError(resendResponse.error) &&
-  !isInputError(resendResponse.error) &&
-  resendResponse.error.code === 'EXPECTATION_FAILED';
-
-if (isVerificationError || isResendError) {
-  setCookiesPage(
-    Astro.cookies,
-    COOKIES_KEY_SESSION_EXPIRED,
-    'Verification',
-    new Date(Date.now() + 60000)
-  );
-  return Astro.redirect('/login');
 }
 
 const structuralError =
@@ -132,29 +83,6 @@ const serverError =
 const codeError = isInputError(response?.error)
   ? response.error.fields.code?.[0]
   : undefined;
-
-const TOTAL_LIFESPAN = 300;
-const COOLDOWN_DURATION = 120;
-const BLOCK_THRESHOLD = TOTAL_LIFESPAN - COOLDOWN_DURATION;
-
-const currentTimestampUTC = Math.floor(Date.now() / 1000);
-const serverExpirySeconds = Math.floor(cookies.expires.getTime() / 1000);
-
-const secondsUntilSessionExpires = serverExpirySeconds - currentTimestampUTC;
-
-let remainingSeconds: number;
-
-if (
-  secondsUntilSessionExpires > BLOCK_THRESHOLD &&
-  secondsUntilSessionExpires <= TOTAL_LIFESPAN
-) {
-  remainingSeconds = secondsUntilSessionExpires - BLOCK_THRESHOLD;
-} else {
-  remainingSeconds = 0;
-}
-
-const isResendActive = remainingSeconds > 0;
-const resendInitText = `Resend in ${remainingSeconds}s`;
 ---
 
 <PublicLayout title='Verification'>
@@ -166,7 +94,7 @@ const resendInitText = `Resend in ${remainingSeconds}s`;
       </div>
     )}
     <form class='form' method='post' action={actions.external.verification}>
-      <input type='hidden' name='method' value={method} />
+      <input type='hidden' name='method' value={methodValue} />
       <div class='form-group'>
         <label for='code'>Code</label>
         <input
@@ -202,14 +130,8 @@ const resendInitText = `Resend in ${remainingSeconds}s`;
         </form>
       ) : (
         <form method='post' action={actions.external.resend}>
-          <button
-            id='resend-btn'
-            class='btn btn-orange'
-            type='submit'
-            disabled={isResendActive}
-            data-countdown={remainingSeconds}
-          >
-            {isResendActive ? resendInitText : 'Resend Code'}
+          <button id='resend-btn' class='btn btn-orange' type='submit'>
+            Resend Code
           </button>
         </form>
       )}
@@ -223,30 +145,3 @@ const resendInitText = `Resend in ${remainingSeconds}s`;
     </div>
   </div>
 </PublicLayout>
-
-<script is:inline>
-  (function () {
-    const btn = document.getElementById('resend-btn');
-    if (!btn) return;
-
-    let secondsLeft = parseInt(btn.dataset.countdown, 10);
-
-    if (isNaN(secondsLeft) || secondsLeft <= 0) {
-      btn.disabled = false;
-      btn.textContent = 'Resend Code';
-      return;
-    }
-
-    const interval = setInterval(() => {
-      secondsLeft--;
-
-      if (secondsLeft <= 0) {
-        clearInterval(interval);
-        btn.disabled = false;
-        btn.textContent = 'Resend Code';
-      } else {
-        btn.textContent = `Resend in ${secondsLeft}s`;
-      }
-    }, 1000);
-  })();
-</script>

@@ -1,4 +1,4 @@
-import { type Timestamp, timestampDate } from "@bufbuild/protobuf/wkt";
+import { timestampDate } from "@bufbuild/protobuf/wkt";
 import { Code, ConnectError } from "@connectrpc/connect";
 import {
   type ActionAPIContext,
@@ -7,26 +7,17 @@ import {
 } from "astro:actions";
 
 import {
-  COOKIES_KEY_SESSION_EXPIRED,
+  COOKIES_KEY_SESSION_VERIFICATION_EXPIRED,
   COOKIES_KEY_VERIFICATION,
 } from "../constants/cookies";
 import { type VerificationSession } from "../protobuf/external/authentication/v1/authentication_pb";
-import type { Verification } from "../utils";
-
-export const setCookies = (
-  context: ActionAPIContext,
-  name: string,
-  value: string,
-  expireAt: Timestamp,
-) => {
-  context.cookies.set(name, value, {
-    path: "/",
-    httpOnly: true,
-    secure: import.meta.env.PROD,
-    sameSite: "strict",
-    expires: timestampDate(expireAt),
-  });
-};
+import {
+  cookiesExpired,
+  deletePrivateCookies,
+  deletePrivateCookiesOnly,
+  deletePublicCookies,
+  setCookies,
+} from "../utils/cookies.ts";
 
 const gRPCCode = (code: Code): ActionErrorCode => {
   switch (code) {
@@ -81,13 +72,70 @@ export const gRPCToHttpError = (e: unknown) => {
   }
 };
 
-export const sessionExpired = (context: ActionAPIContext, page: string) => {
-  context.cookies.set(COOKIES_KEY_SESSION_EXPIRED, page, {
-    path: "/",
-    httpOnly: true,
-    sameSite: "strict",
-    expires: new Date(Date.now() + 60000),
-  });
+export const gRPCToHttpErrorPrivate = (
+  e: unknown,
+  context: ActionAPIContext,
+) => {
+  if (e instanceof ConnectError) {
+    if (e.code === Code.Unauthenticated) {
+      deletePrivateCookies(context);
+    }
+    throw new ActionError({
+      code: gRPCCode(e.code),
+      message: e.rawMessage,
+    });
+  } else {
+    throw new ActionError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Something went wrong",
+    });
+  }
+};
+
+export const gRPCToHttpErrorPrivateSession = (
+  e: unknown,
+  context: ActionAPIContext,
+  value: string,
+) => {
+  if (e instanceof ConnectError) {
+    if (e.code === Code.Unauthenticated) {
+      deletePrivateCookies(context);
+    }
+    if (e.code === Code.FailedPrecondition) {
+      deletePrivateCookiesOnly(context);
+      cookiesExpired(context, COOKIES_KEY_SESSION_VERIFICATION_EXPIRED, value);
+    }
+    throw new ActionError({
+      code: gRPCCode(e.code),
+      message: e.rawMessage,
+    });
+  } else {
+    throw new ActionError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Something went wrong",
+    });
+  }
+};
+
+export const gRPCToHttpErrorPublic = (
+  e: unknown,
+  context: ActionAPIContext,
+  value: string,
+) => {
+  if (e instanceof ConnectError) {
+    if (e.code === Code.FailedPrecondition || e.code === Code.Unauthenticated) {
+      deletePublicCookies(context, value);
+    }
+    throw new ActionError({
+      code: gRPCCode(e.code),
+      message: e.rawMessage,
+    });
+  } else {
+    throw new ActionError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Something went wrong",
+    });
+  }
 };
 
 export const verificationSession = (
@@ -109,7 +157,7 @@ export const verificationSessionCookies = (
     });
   }
 
-  const session: Verification = {
+  const session = {
     session: verification.session,
     method: verification.method,
     expires: timestampDate(verification.expires),
@@ -121,4 +169,28 @@ export const verificationSessionCookies = (
     JSON.stringify(session),
     verification.expires,
   );
+};
+
+export const RemainingTimeError = (
+  context: ActionAPIContext,
+  expires: number,
+  value: string,
+) => {
+  const remaining = expires - Date.now();
+
+  if (remaining < 0 || remaining > 300_000) {
+    deletePublicCookies(context, value);
+    throw new ActionError({
+      code: "EXPECTATION_FAILED",
+      message: `Session Expired`,
+    });
+  }
+
+  if (remaining > 180_000) {
+    const seconds = Math.ceil(remaining / 1000);
+    throw new ActionError({
+      code: "PRECONDITION_FAILED",
+      message: `Please wait ${seconds}s before requesting a new code.`,
+    });
+  }
 };

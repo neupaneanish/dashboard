@@ -82,3 +82,23 @@ export const passwordValidation = () =>
           }),
         ),
     );
+
+export const codeValidation = z
+  .object({
+    code: z
+      .string()
+      .or(z.null())
+      .transform((val) => val ?? ""),
+    method: z.enum(["email", "totp", "recovery"]),
+  })
+  .superRefine(({ code, method }, ctx) => {
+    const specializedSchema = codeSchema(method);
+    const result = specializedSchema.safeParse(code);
+    if (!result.success) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Enter a valid code",
+        path: ["code"],
+      });
+    }
+  });

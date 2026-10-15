@@ -6,16 +6,13 @@ import {
   COOKIES_KEY_SESSION,
   COOKIES_KEY_VERIFICATION,
 } from "../../constants/cookies";
-import { externalAuthenticationClient } from "../../libs/grpc.ts";
-import type { Verification } from "../../utils";
+import { externalAuthenticationClient } from "../../libs/grpc";
+import { setCookies } from "../../utils/cookies";
 import { passwordValidation } from "../../validation";
-import { gRPCToHttpError, setCookies } from "../utils.ts";
+import { gRPCToHttpError } from "../utils";
 
 const schema = z.object({
-  email: z.coerce
-    .string()
-    .min(1, "Email is required")
-    .pipe(z.email("Enter a valid email")),
+  email: z.email("Enter a valid email"),
   password: passwordValidation(),
 });
 
@@ -47,7 +44,7 @@ export const login = defineAction({
         );
         return { next: "/" };
       case "verification": {
-        const session: Verification = {
+        const session = {
           session: res.response.value.session,
           method: res.response.value.method,
           expires: timestampDate(res.response.value.expires),
