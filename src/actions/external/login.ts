@@ -2,18 +2,16 @@ import { timestampDate } from "@bufbuild/protobuf/wkt";
 import { z } from "astro/zod";
 import { ActionError, defineAction } from "astro:actions";
 
-import {
-  COOKIES_KEY_SESSION,
-  COOKIES_KEY_VERIFICATION,
-} from "../../constants/cookies";
+import { COOKIES_KEY_SESSION, COOKIES_KEY_VERIFICATION } from "../../constants";
 import { externalAuthenticationClient } from "../../libs/grpc";
+import { setVerification } from "../../utils";
 import { setCookies } from "../../utils/cookies";
 import { passwordValidation } from "../../validation";
 import { gRPCToHttpError } from "../utils";
 
 const schema = z.object({
   email: z.email("Enter a valid email"),
-  password: passwordValidation(),
+  password: passwordValidation,
 });
 
 export const login = defineAction({
@@ -37,23 +35,21 @@ export const login = defineAction({
     switch (res.response.case) {
       case "session":
         setCookies(
-          context,
+          context.cookies,
           COOKIES_KEY_SESSION,
           res.response.value.session,
           res.response.value.expires,
         );
         return { next: "/" };
       case "verification": {
-        const session = {
-          session: res.response.value.session,
-          method: res.response.value.method,
-          expires: timestampDate(res.response.value.expires),
-        };
-        setCookies(
-          context,
+        setVerification(
+          context.cookies,
+          {
+            session: res.response.value.session,
+            method: res.response.value.method,
+            expires: timestampDate(res.response.value.expires),
+          },
           COOKIES_KEY_VERIFICATION,
-          JSON.stringify(session),
-          res.response.value.expires,
         );
         return { next: "/verification" };
       }

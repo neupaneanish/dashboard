@@ -1,43 +1,26 @@
-import { z } from "astro/zod";
 import { ActionError, defineAction } from "astro:actions";
 
-import { COOKIES_KEY_RESET_PASSWORD } from "../../constants/cookies";
+import { COOKIES_KEY_RESET_PASSWORD } from "../../constants";
 import { externalAuthenticationClient } from "../../libs/grpc";
+import type { SessionExpired } from "../../utils";
 import { deletePublicCookies } from "../../utils/cookies";
-import { passwordSchema } from "../../validation";
+import { resetChangePasswordSchema } from "../../validation";
 import { gRPCToHttpErrorPublic } from "../utils";
-
-const schema = z
-  .object({
-    password: z
-      .string()
-      .or(z.null())
-      .transform((val) => val ?? "")
-      .pipe(passwordSchema()),
-    confirmPassword: z
-      .string()
-      .or(z.null())
-      .transform((val) => val ?? "")
-      .pipe(z.string().min(1, "Confirm Password is required")),
-  })
-  .superRefine(({ password, confirmPassword }, ctx) => {
-    if (password !== confirmPassword) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Passwords do not match",
-        path: ["confirmPassword"],
-      });
-    }
-  });
 
 export const resetPassword = defineAction({
   accept: "form",
-  input: schema,
+  input: resetChangePasswordSchema,
   handler: async (input, context) => {
-    const cookies = context.cookies.get(COOKIES_KEY_RESET_PASSWORD)?.value;
+    const cookie = context.cookies.get(COOKIES_KEY_RESET_PASSWORD)?.value;
 
-    if (!cookies) {
-      deletePublicCookies(context, "Reset Password");
+    const errorMessage: SessionExpired = {
+      success: false,
+      title: "Session Expired",
+      message: "Reset password session expired, Please start from beginning",
+    };
+
+    if (!cookie) {
+      deletePublicCookies(context.cookies, errorMessage);
       throw new ActionError({
         code: "UNAUTHORIZED",
         message: "Session expired",
@@ -48,9 +31,14 @@ export const resetPassword = defineAction({
       .resetPassword({
         password: { value: input.password },
         confirmPassword: { value: input.confirmPassword },
-        session: cookies,
+        session: cookie,
       })
-      .catch((e) => gRPCToHttpErrorPublic(e, context, "Reset Password"));
-    return { next: "/login" };
+      .catch((e) => gRPCToHttpErrorPublic(e, context.cookies, errorMessage));
+    deletePublicCookies(context.cookies, {
+      success: true,
+      title: "Password Reset",
+      message:
+        "Your password has been reset successfully. Please log in with your new credentials.",
+    });
   },
 });

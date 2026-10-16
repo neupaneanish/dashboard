@@ -1,11 +1,8 @@
 ---
 import PrivateLayout from '../layouts/PrivateLayout.astro';
-import { COOKIES_KEY_PUBLIC_SESSION } from '../constants/cookies';
-import { deletePublicCookies } from '../utils';
+import { COOKIES_KEY_SESSION } from '../constants';
 
-deletePublicCookies(Astro.cookies);
-
-if (!Astro.cookies.has(COOKIES_KEY_PUBLIC_SESSION)) {
+if (!Astro.cookies.has(COOKIES_KEY_SESSION)) {
   return Astro.redirect('/login');
 }
 ---

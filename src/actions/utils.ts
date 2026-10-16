@@ -1,23 +1,28 @@
 import { timestampDate } from "@bufbuild/protobuf/wkt";
 import { Code, ConnectError } from "@connectrpc/connect";
-import {
-  type ActionAPIContext,
-  ActionError,
-  type ActionErrorCode,
-} from "astro:actions";
+import type { AstroCookies } from "astro";
+import { ActionError, type ActionErrorCode } from "astro:actions";
 
 import {
-  COOKIES_KEY_SESSION_VERIFICATION_EXPIRED,
+  COOKIES_KEY_SESSION,
   COOKIES_KEY_VERIFICATION,
-} from "../constants/cookies";
+  COOKIES_KEY_VERIFICATION_SESSION,
+} from "../constants";
 import { type VerificationSession } from "../protobuf/external/authentication/v1/authentication_pb";
 import {
-  cookiesExpired,
+  getVerification,
+  type SessionExpired,
+  setVerification,
+} from "../utils";
+import {
   deletePrivateCookies,
-  deletePrivateCookiesOnly,
+  deletePrivateCookiesExpire,
   deletePublicCookies,
-  setCookies,
 } from "../utils/cookies.ts";
+import {
+  PasswordVerificationHeading,
+  VerificationHeading,
+} from "../utils/heading.ts";
 
 const gRPCCode = (code: Code): ActionErrorCode => {
   switch (code) {
@@ -78,57 +83,55 @@ export const gRPCToHttpError = (e: unknown) => {
   }
 };
 
-export const gRPCToHttpErrorPrivate = (
+export const gRPCToHttpErrorPublic = (
   e: unknown,
-  context: ActionAPIContext,
+  cookies: AstroCookies,
+  value: SessionExpired,
 ) => {
-  if (e instanceof ConnectError && e.code === Code.Unauthenticated) {
-    deletePrivateCookies(context);
+  if (
+    e instanceof ConnectError &&
+    (e.code === Code.FailedPrecondition || e.code === Code.Unauthenticated)
+  ) {
+    deletePublicCookies(cookies, value);
   }
   throw gRPCToHttpError(e);
 };
 
 export const gRPCToHttpErrorPrivateSession = (
   e: unknown,
-  context: ActionAPIContext,
-  value: string,
+  cookies: AstroCookies,
+  value: SessionExpired,
 ) => {
   if (e instanceof ConnectError) {
-    if (e.code === Code.Unauthenticated) {
-      deletePrivateCookies(context);
-    }
-    if (e.code === Code.FailedPrecondition) {
-      deletePrivateCookiesOnly(context);
-      cookiesExpired(context, COOKIES_KEY_SESSION_VERIFICATION_EXPIRED, value);
+    switch (e.code) {
+      case Code.FailedPrecondition:
+        deletePrivateCookiesExpire(cookies, value);
+        break;
+      case Code.Unauthenticated:
+        deletePrivateCookies(cookies);
+        break;
     }
   }
   throw gRPCToHttpError(e);
 };
 
-export const gRPCToHttpErrorPublic = (
-  e: unknown,
-  context: ActionAPIContext,
-  value: string,
-) => {
-  if (
-    e instanceof ConnectError &&
-    (e.code === Code.FailedPrecondition || e.code === Code.Unauthenticated)
-  ) {
-    deletePublicCookies(context, value);
+export const gRPCToHttpErrorPrivate = (e: unknown, cookies: AstroCookies) => {
+  if (e instanceof ConnectError && e.code === Code.Unauthenticated) {
+    cookies.delete(COOKIES_KEY_SESSION, { path: "/" });
   }
   throw gRPCToHttpError(e);
 };
 
 export const verificationSession = (
-  context: ActionAPIContext,
+  cookies: AstroCookies,
   verification: VerificationSession | undefined,
 ) => {
-  verificationSessionCookies(context, verification);
+  verificationSessionCookies(cookies, verification);
   return { next: "/verification" };
 };
 
 export const verificationSessionCookies = (
-  context: ActionAPIContext,
+  cookies: AstroCookies,
   verification: VerificationSession | undefined,
 ) => {
   if (!verification || !verification.expires) {
@@ -138,29 +141,34 @@ export const verificationSessionCookies = (
     });
   }
 
-  const session = {
-    session: verification.session,
-    method: verification.method,
-    expires: timestampDate(verification.expires),
-  };
-
-  setCookies(
-    context,
+  setVerification(
+    cookies,
+    {
+      session: verification.session,
+      method: verification.method,
+      expires: timestampDate(verification.expires),
+    },
     COOKIES_KEY_VERIFICATION,
-    JSON.stringify(session),
-    verification.expires,
   );
 };
 
 export const RemainingTimeError = (
-  context: ActionAPIContext,
+  cookies: AstroCookies,
   expires: number,
-  value: string,
+  value: SessionExpired,
+  key: string,
 ) => {
   const remaining = expires - Date.now();
 
-  if (remaining < 0 || remaining > 300_000) {
-    deletePublicCookies(context, value);
+  if (remaining > 300_000) {
+    switch (key) {
+      case COOKIES_KEY_VERIFICATION:
+        deletePublicCookies(cookies, value);
+        break;
+      case COOKIES_KEY_VERIFICATION_SESSION:
+        deletePrivateCookiesExpire(cookies, value);
+        break;
+    }
     throw new ActionError({
       code: "EXPECTATION_FAILED",
       message: `Session Expired`,
@@ -168,10 +176,54 @@ export const RemainingTimeError = (
   }
 
   if (remaining > 180_000) {
-    const seconds = Math.ceil(remaining / 1000);
+    const seconds = Math.ceil((remaining - 180_000) / 1000);
     throw new ActionError({
       code: "PRECONDITION_FAILED",
       message: `Please wait ${seconds}s before requesting a new code.`,
     });
   }
+};
+
+export const verificationCheck = (cookies: AstroCookies, key: string) => {
+  const cookie = getVerification(cookies, key);
+
+  if (!cookie) {
+    const errorMessage = {
+      success: false,
+      title: "Session Expired",
+      message:
+        "Your verification session has expired. Please start the process again.",
+    };
+    switch (key) {
+      case COOKIES_KEY_VERIFICATION_SESSION:
+        deletePrivateCookiesExpire(cookies, errorMessage);
+        break;
+      case COOKIES_KEY_VERIFICATION:
+        deletePublicCookies(cookies, errorMessage);
+        break;
+    }
+
+    throw new ActionError({
+      code: "PRECONDITION_FAILED",
+      message: "Session expired",
+    });
+  }
+
+  let value: string = "";
+
+  switch (key) {
+    case COOKIES_KEY_VERIFICATION_SESSION:
+      value = PasswordVerificationHeading(cookie.method);
+      break;
+    case COOKIES_KEY_VERIFICATION:
+      value = VerificationHeading(cookie.method);
+      break;
+  }
+  const errorMessage: SessionExpired = {
+    success: false,
+    title: "Session Expired",
+    message: `Your ${value.toLocaleLowerCase()} session has expired. Please start the process again.`,
+  };
+
+  return { cookie, errorMessage };
 };

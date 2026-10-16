@@ -29,6 +29,6 @@ export const updateStatus = defineAction({
         status: input.status,
         updatedAt: timestampFromDate(input.updatedAt),
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
   },
 });

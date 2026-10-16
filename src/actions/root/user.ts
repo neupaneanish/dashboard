@@ -17,6 +17,6 @@ export const user = defineAction({
 
     return await rootAuthenticationClient
       .user({ id: id })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
   },
 });

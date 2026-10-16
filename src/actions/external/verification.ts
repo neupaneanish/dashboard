@@ -7,35 +7,29 @@ import {
   COOKIES_KEY_SESSION,
   COOKIES_KEY_VERIFICATION,
   COOKIES_KEY_VERIFICATION_METHOD,
-} from "../../constants/cookies";
+} from "../../constants";
 import { externalAuthenticationClient } from "../../libs/grpc";
-import { type Verification } from "../../utils";
+import { VerificationMethod } from "../../protobuf/external/authentication/v1/authentication_pb.ts";
 import {
   deletePublicCookies,
   deletePublicCookiesOnly,
   setCookies,
 } from "../../utils/cookies";
-import { VerificationHeading } from "../../utils/heading";
 import { codeValidation } from "../../validation";
-import { gRPCToHttpErrorPublic, verificationSessionCookies } from "../utils";
+import {
+  gRPCToHttpErrorPublic,
+  verificationCheck,
+  verificationSessionCookies,
+} from "../utils";
 
 export const verification = defineAction({
   accept: "form",
   input: codeValidation,
   handler: async (input, context) => {
-    const cookies: Verification | undefined = context.cookies
-      .get(COOKIES_KEY_VERIFICATION)
-      ?.json();
-
-    if (!(cookies && cookies.session && cookies.method && cookies.expires)) {
-      deletePublicCookies(context, "Verification");
-      throw new ActionError({
-        code: "PRECONDITION_FAILED",
-        message: "Session expired",
-      });
-    }
-
-    const value = VerificationHeading(cookies.method);
+    const { cookie, errorMessage } = verificationCheck(
+      context.cookies,
+      COOKIES_KEY_VERIFICATION,
+    );
 
     const res = await externalAuthenticationClient
       .verification({
@@ -43,9 +37,9 @@ export const verification = defineAction({
           case: input.method,
           value: input.code,
         },
-        session: cookies.session,
+        session: cookie.session,
       })
-      .catch((e) => gRPCToHttpErrorPublic(e, context, value));
+      .catch((e) => gRPCToHttpErrorPublic(e, context.cookies, errorMessage));
 
     if (!res.response.value || !res.response.value.expires) {
       throw new ActionError({
@@ -56,21 +50,21 @@ export const verification = defineAction({
 
     switch (res.response.case) {
       case "session":
-        deletePublicCookiesOnly(context);
+        deletePublicCookiesOnly(context.cookies);
         setCookies(
-          context,
+          context.cookies,
           COOKIES_KEY_SESSION,
           res.response.value.session,
           res.response.value.expires,
         );
         return { next: "/" };
       case "verification": {
-        return verificationSessionCookies(context, res.response.value);
+        return verificationSessionCookies(context.cookies, res.response.value);
       }
       case "resetSession":
-        deletePublicCookiesOnly(context);
+        deletePublicCookiesOnly(context.cookies);
         setCookies(
-          context,
+          context.cookies,
           COOKIES_KEY_RESET_PASSWORD,
           res.response.value.session,
           res.response.value.expires,
@@ -86,20 +80,20 @@ export const verificationMethod = defineAction({
     method: z.enum(["totp", "recovery"]),
   }),
   handler: async (input, context) => {
-    const cookies: Verification | undefined = context.cookies
-      .get(COOKIES_KEY_VERIFICATION)
-      ?.json();
+    const { cookie, errorMessage } = verificationCheck(
+      context.cookies,
+      COOKIES_KEY_VERIFICATION,
+    );
 
-    if (cookies && cookies.session && cookies.method && cookies.expires) {
+    if (cookie.method === VerificationMethod.TWO_FACTOR) {
       return setCookies(
-        context,
+        context.cookies,
         COOKIES_KEY_VERIFICATION_METHOD,
         input.method,
-        timestampFromDate(new Date(cookies.expires)),
+        timestampFromDate(new Date(cookie.expires)),
       );
     }
-
-    deletePublicCookies(context, "Verification");
+    deletePublicCookies(context.cookies, errorMessage);
     throw new ActionError({
       code: "UNAUTHORIZED",
       message: "Session expired",

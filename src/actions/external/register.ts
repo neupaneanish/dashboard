@@ -56,6 +56,6 @@ export const register = defineAction({
       })
       .catch(gRPCToHttpError);
 
-    return verificationSession(context, res.verification);
+    return verificationSession(context.cookies, res.verification);
   },
 });

@@ -60,28 +60,27 @@ export const mobileSchema = () => {
     });
 };
 
-export const passwordValidation = () =>
-  z
-    .string()
-    .or(z.null())
-    .transform((val) => val ?? "")
-    .pipe(
-      z
-        .string()
-        .min(1, "Password is required")
-        .pipe(
-          z.string().superRefine((val, ctx) => {
-            const isValid = passwordSchema().safeParse(val).success;
-            if (!isValid) {
-              ctx.addIssue({
-                code: "custom",
-                message: "Enter a valid password",
-                fatal: true,
-              });
-            }
-          }),
-        ),
-    );
+export const passwordValidation = z
+  .string()
+  .or(z.null())
+  .transform((val) => val ?? "")
+  .pipe(
+    z
+      .string()
+      .min(1, "Password is required")
+      .pipe(
+        z.string().superRefine((val, ctx) => {
+          const isValid = passwordSchema().safeParse(val).success;
+          if (!isValid) {
+            ctx.addIssue({
+              code: "custom",
+              message: "Enter a valid password",
+              fatal: true,
+            });
+          }
+        }),
+      ),
+  );
 
 export const codeValidation = z
   .object({
@@ -99,6 +98,29 @@ export const codeValidation = z
         code: "custom",
         message: "Enter a valid code",
         path: ["code"],
+      });
+    }
+  });
+
+export const resetChangePasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .or(z.null())
+      .transform((val) => val ?? "")
+      .pipe(passwordSchema()),
+    confirmPassword: z
+      .string()
+      .or(z.null())
+      .transform((val) => val ?? "")
+      .pipe(z.string().min(1, "Confirm Password is required")),
+  })
+  .superRefine(({ password, confirmPassword }, ctx) => {
+    if (password !== confirmPassword) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Passwords do not match",
+        path: ["confirmPassword"],
       });
     }
   });

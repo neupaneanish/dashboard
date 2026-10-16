@@ -32,6 +32,6 @@ export const updateUsername = defineAction({
           updatedAt: timestampFromDate(input.updatedAt),
         },
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
   },
 });

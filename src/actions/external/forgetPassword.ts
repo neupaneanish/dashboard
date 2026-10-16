@@ -16,6 +16,6 @@ export const forgetPassword = defineAction({
       .forgetPassword({ email: input.email })
       .catch(gRPCToHttpError);
 
-    return verificationSession(context, res.verification);
+    return verificationSession(context.cookies, res.verification);
   },
 });

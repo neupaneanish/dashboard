@@ -21,6 +21,6 @@ export const updateRole = defineAction({
         role: input.role,
         updatedAt: timestampFromDate(input.updatedAt),
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
   },
 });

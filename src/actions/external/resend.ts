@@ -1,62 +1,57 @@
 import { ActionError, defineAction } from "astro:actions";
 
-import { COOKIES_KEY_VERIFICATION } from "../../constants/cookies";
+import { COOKIES_KEY_VERIFICATION_SESSION } from "../../constants";
 import { externalAuthenticationClient } from "../../libs/grpc";
 import {
   VerificationMethod,
   type VerificationSession,
 } from "../../protobuf/external/authentication/v1/authentication_pb";
-import type { Verification } from "../../utils";
 import { deletePublicCookies } from "../../utils/cookies";
-import { VerificationHeading } from "../../utils/heading";
 import {
   gRPCToHttpErrorPublic,
   RemainingTimeError,
+  verificationCheck,
   verificationSessionCookies,
 } from "../utils";
 
 export const resend = defineAction({
   accept: "form",
   handler: async (_, context) => {
-    const cookies: Verification | undefined = context.cookies
-      .get(COOKIES_KEY_VERIFICATION)
-      ?.json();
-
-    if (!(cookies && cookies.session && cookies.method && cookies.expires)) {
-      deletePublicCookies(context, "Verification");
-      throw new ActionError({
-        code: "PRECONDITION_FAILED",
-        message: "Session expired",
-      });
-    }
-
-    const value = VerificationHeading(cookies.method);
+    const { cookie, errorMessage } = verificationCheck(
+      context.cookies,
+      COOKIES_KEY_VERIFICATION_SESSION,
+    );
 
     if (!(
-      cookies.method === VerificationMethod.EMAIL ||
-      cookies.method === VerificationMethod.ACCOUNT ||
-      cookies.method === VerificationMethod.RESET
+      cookie.method === VerificationMethod.EMAIL ||
+      cookie.method === VerificationMethod.ACCOUNT ||
+      cookie.method === VerificationMethod.RESET
     )) {
-      deletePublicCookies(context, value);
+      deletePublicCookies(context.cookies, errorMessage);
       throw new ActionError({
         code: "PRECONDITION_FAILED",
         message: "Session expired",
       });
     }
 
-    RemainingTimeError(context, cookies.expires, value);
+    RemainingTimeError(
+      context.cookies,
+      cookie.expires,
+      errorMessage,
+      COOKIES_KEY_VERIFICATION_SESSION,
+    );
 
     const res = await externalAuthenticationClient
-      .resend({ session: cookies.session })
-      .catch((e) => gRPCToHttpErrorPublic(e, context, value));
+      .resend({ session: cookie.session })
+      .catch((e) => gRPCToHttpErrorPublic(e, context.cookies, errorMessage));
 
     const verification: VerificationSession = {
       $typeName: "external.authentication.v1.VerificationSession",
       session: res.session,
-      method: cookies.method,
+      method: cookie.method,
       expires: res.expires,
     };
 
-    return verificationSessionCookies(context, verification);
+    return verificationSessionCookies(context.cookies, verification);
   },
 });

@@ -2,40 +2,34 @@
 import { actions, isInputError, isActionError } from 'astro:actions';
 import {
   COOKIES_KEY_SESSION,
-  COOKIES_KEY_SESSION_EXPIRED,
   COOKIES_KEY_VERIFICATION,
+  COOKIES_KEY_SESSION_EXPIRED,
   COOKIES_KEY_VERIFICATION_METHOD,
-} from '../constants/cookies';
+} from '../constants';
 import PublicLayout from '../layouts/PublicLayout.astro';
 import { VerificationMethod } from '../protobuf/external/authentication/v1/authentication_pb';
-import type { Verification } from '../utils';
+import { getVerification, type Verification } from '../utils';
 import { VerificationHeading } from '../utils/heading';
 
 if (Astro.cookies.has(COOKIES_KEY_SESSION)) {
   return Astro.redirect('/');
 }
 
-const cookies: Verification | undefined = Astro.cookies
-  .get(COOKIES_KEY_VERIFICATION)
-  ?.json();
-
-if (
-  Astro.cookies.has(COOKIES_KEY_SESSION_EXPIRED) ||
-  !(cookies && cookies.session && cookies.method && cookies.expires)
-) {
+const verification = getVerification(Astro.cookies, COOKIES_KEY_VERIFICATION);
+if (!verification || Astro.cookies.has(COOKIES_KEY_SESSION_EXPIRED)) {
   return Astro.redirect('/login');
 }
 
 let method = Astro.cookies.get(COOKIES_KEY_VERIFICATION_METHOD)?.value;
 
-if (cookies.method === VerificationMethod.TWO_FACTOR && !method) {
+if (verification.method === VerificationMethod.TWO_FACTOR && !method) {
   method = 'totp';
 }
 
 let hint: string = '';
 
 const methodValue = (() => {
-  switch (cookies.method) {
+  switch (verification.method) {
     case VerificationMethod.TWO_FACTOR:
       switch (method) {
         case 'recovery':
@@ -57,7 +51,7 @@ const methodValue = (() => {
   }
 })();
 
-const heading = VerificationHeading(cookies.method);
+const heading = VerificationHeading(verification.method);
 
 if (methodValue === '' || heading === 'Verification') {
   return Astro.redirect('/login');
@@ -70,15 +64,13 @@ if (response?.data) {
   return Astro.redirect(response.data.next);
 }
 
-const structuralError =
+const errors =
   (response?.error && !isInputError(response.error)
     ? response.error
     : undefined) || resendResponse?.error;
 
 const serverError =
-  structuralError && isActionError(structuralError)
-    ? structuralError.message
-    : undefined;
+  errors && isActionError(errors) ? errors.message : undefined;
 
 const codeError = isInputError(response?.error)
   ? response.error.fields.code?.[0]
@@ -113,24 +105,26 @@ const codeError = isInputError(response?.error)
         </div>
       </div>
       <button class='btn btn-blue' type='submit'>
-        Verify
+        Submit
       </button>
     </form>
     <div style='margin: 1rem 0'>
-      {cookies.method === VerificationMethod.TWO_FACTOR ? (
+      {verification.method === VerificationMethod.TWO_FACTOR ? (
         <form method='post' action={actions.external.verificationMethod}>
           <input
             type='hidden'
-            name='currentTarget'
+            name='method'
             value={methodValue as 'totp' | 'recovery'}
           />
           <button class='btn btn-green-link' type='submit'>
-            {methodValue === 'totp' ? 'Use recovery' : 'Use authenticator'}
+            {methodValue === 'totp'
+              ? 'Use Recovery Code'
+              : 'Use Authenticator App'}
           </button>
         </form>
       ) : (
         <form method='post' action={actions.external.resend}>
-          <button id='resend-btn' class='btn btn-orange' type='submit'>
+          <button class='btn btn-orange' type='submit'>
             Resend Code
           </button>
         </form>
