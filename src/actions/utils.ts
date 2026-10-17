@@ -4,7 +4,6 @@ import type { AstroCookies } from "astro";
 import { ActionError, type ActionErrorCode } from "astro:actions";
 
 import {
-  COOKIES_KEY_SESSION,
   COOKIES_KEY_VERIFICATION,
   COOKIES_KEY_VERIFICATION_SESSION,
 } from "../constants";
@@ -117,7 +116,7 @@ export const gRPCToHttpErrorPrivateSession = (
 
 export const gRPCToHttpErrorPrivate = (e: unknown, cookies: AstroCookies) => {
   if (e instanceof ConnectError && e.code === Code.Unauthenticated) {
-    cookies.delete(COOKIES_KEY_SESSION, { path: "/" });
+    deletePrivateCookies(cookies);
   }
   throw gRPCToHttpError(e);
 };
