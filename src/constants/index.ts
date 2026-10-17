@@ -6,7 +6,6 @@ export const COOKIES_KEY_RESET_PASSWORD = "reset-password";
 // Private
 export const COOKIES_KEY_SESSION = "session";
 export const COOKIES_KEY_VERIFICATION_SESSION = "verification-session";
-export const COOKIES_KEY_VERIFICATION_EXPIRED = "verification-expired";
 export const COOKIES_KEY_VERIFICATION_SESSION_METHOD =
   "verification-session-method";
 export const COOKIES_KEY_CHANGE_EMAIL = "change-email";

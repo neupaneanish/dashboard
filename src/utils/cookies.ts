@@ -9,7 +9,6 @@ import {
   COOKIES_KEY_SESSION,
   COOKIES_KEY_SESSION_EXPIRED,
   COOKIES_KEY_VERIFICATION,
-  COOKIES_KEY_VERIFICATION_EXPIRED,
   COOKIES_KEY_VERIFICATION_METHOD,
   COOKIES_KEY_VERIFICATION_SESSION,
   COOKIES_KEY_VERIFICATION_SESSION_METHOD,
@@ -27,7 +26,7 @@ export const deletePublicCookies = (
   data: SessionExpired,
 ) => {
   deletePublicCookiesOnly(cookies);
-  setExpiredMessage(cookies, COOKIES_KEY_SESSION_EXPIRED, data);
+  setExpiredMessage(cookies, data);
 };
 
 export const deletePrivateCookiesOnly = (cookies: AstroCookies) => {
@@ -43,7 +42,7 @@ export const deletePrivateCookiesExpire = (
   value: SessionExpired,
 ) => {
   deletePrivateCookiesOnly(cookies);
-  setExpiredMessage(cookies, COOKIES_KEY_VERIFICATION_EXPIRED, value);
+  setExpiredMessage(cookies, value);
 };
 
 export const deletePrivateCookies = (
@@ -54,7 +53,6 @@ export const deletePrivateCookies = (
   cookies.delete(COOKIES_KEY_SESSION, { path: "/" });
   setExpiredMessage(
     cookies,
-    COOKIES_KEY_SESSION_EXPIRED,
     value
       ? value
       : {
@@ -82,10 +80,9 @@ export const setCookies = (
 
 export const setExpiredMessage = (
   cookies: AstroCookies,
-  key: string,
   data: SessionExpired,
 ) => {
-  cookies.set(key, data, {
+  cookies.set(COOKIES_KEY_SESSION_EXPIRED, data, {
     path: "/",
     httpOnly: true,
     secure: import.meta.env.PROD,

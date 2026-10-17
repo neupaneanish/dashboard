@@ -1,21 +1,10 @@
 ---
 import PublicLayout from '../layouts/PublicLayout.astro';
-import { COOKIES_KEY_SESSION, COOKIES_KEY_SESSION_EXPIRED } from '../constants';
+import { COOKIES_KEY_SESSION } from '../constants';
 import { actions, isInputError, isActionError } from 'astro:actions';
-import { getExpiredMessage } from '../utils';
-import { deletePublicCookiesOnly } from '../utils/cookies.ts';
 
 if (Astro.cookies.has(COOKIES_KEY_SESSION)) {
   return Astro.redirect('/');
-}
-
-const expiredMessage = getExpiredMessage(
-  Astro.cookies,
-  COOKIES_KEY_SESSION_EXPIRED
-);
-if (expiredMessage) {
-  Astro.cookies.delete(COOKIES_KEY_SESSION_EXPIRED, { path: '/' });
-  deletePublicCookiesOnly(Astro.cookies);
 }
 
 const response = Astro.getActionResult(actions.external.login);

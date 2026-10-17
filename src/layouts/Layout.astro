@@ -3,12 +3,22 @@ import '../styles/reset.css';
 import '../styles/variables.css';
 import '../styles/style.css';
 import ClientRouter from 'astro/components/ClientRouter.astro';
+import { getExpiredMessage } from '../utils';
+import { COOKIES_KEY_SESSION_EXPIRED } from '../constants';
+import SessionExpired from '../components/SessionExpired.astro';
 
 interface Props {
   title: string;
 }
 
 const { title } = Astro.props;
+const expiredMessage = getExpiredMessage(
+  Astro.cookies,
+  COOKIES_KEY_SESSION_EXPIRED
+);
+if (expiredMessage) {
+  Astro.cookies.delete(COOKIES_KEY_SESSION_EXPIRED, { path: '/' });
+}
 ---
 
 <html lang='en'>
@@ -29,5 +39,9 @@ const { title } = Astro.props;
   </head>
   <body>
     <slot />
+    <SessionExpired sessionExpired={expiredMessage} />
+    <script is:inline>
+      document.getElementById('session-expired')?.showModal();
+    </script>
   </body>
 </html>

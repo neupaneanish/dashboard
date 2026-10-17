@@ -9,7 +9,7 @@ import {
   COOKIES_KEY_VERIFICATION_METHOD,
 } from "../../constants";
 import { externalAuthenticationClient } from "../../libs/grpc";
-import { VerificationMethod } from "../../protobuf/external/authentication/v1/authentication_pb.ts";
+import { VerificationMethod } from "../../protobuf/external/authentication/v1/authentication_pb";
 import {
   deletePublicCookies,
   deletePublicCookiesOnly,

@@ -3,7 +3,6 @@ import { actions, isInputError, isActionError } from 'astro:actions';
 import {
   COOKIES_KEY_SESSION,
   COOKIES_KEY_VERIFICATION,
-  COOKIES_KEY_SESSION_EXPIRED,
   COOKIES_KEY_VERIFICATION_METHOD,
 } from '../constants';
 import PublicLayout from '../layouts/PublicLayout.astro';
@@ -16,7 +15,7 @@ if (Astro.cookies.has(COOKIES_KEY_SESSION)) {
 }
 
 const verification = getVerification(Astro.cookies, COOKIES_KEY_VERIFICATION);
-if (!verification || Astro.cookies.has(COOKIES_KEY_SESSION_EXPIRED)) {
+if (!verification) {
   return Astro.redirect('/login');
 }
 
