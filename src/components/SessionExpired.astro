@@ -1,22 +1,26 @@
 ---
-import type { SessionExpired } from '../utils';
-interface Props {
-  sessionExpired: SessionExpired | undefined;
+import { getExpiredMessage } from '../utils';
+import { COOKIES_KEY_SESSION_EXPIRED } from '../constants';
+const expiredMessage = getExpiredMessage(
+  Astro.cookies,
+  COOKIES_KEY_SESSION_EXPIRED
+);
+if (expiredMessage) {
+  Astro.cookies.delete(COOKIES_KEY_SESSION_EXPIRED, { path: '/' });
 }
-const { sessionExpired } = Astro.props;
 ---
 
-{sessionExpired && (
+{expiredMessage && (
   <dialog id='session-expired' closedby='none'>
     <div class='dialog'>
-      <h2>{sessionExpired.title}</h2>
-      <p>{sessionExpired.message}</p>
+      <h2>{expiredMessage.title}</h2>
+      <p>{expiredMessage.message}</p>
       <button
         command='close'
         commandfor='session-expired'
         class:list={[
           'btn',
-          sessionExpired.success ? 'btn-green' : 'btn-crimson',
+          expiredMessage.success ? 'btn-green' : 'btn-crimson',
         ]}
       >
         OK
@@ -24,3 +28,7 @@ const { sessionExpired } = Astro.props;
     </div>
   </dialog>
 )}
+
+<script is:inline>
+  document.getElementById('session-expired')?.showModal();
+</script>
