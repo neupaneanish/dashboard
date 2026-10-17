@@ -7,7 +7,7 @@ import { gatewayAuthenticationClient } from "../../libs/grpc.ts";
 import { PasswordVerificationMethod } from "../../protobuf/gateway/authentication/v1/authentication_pb";
 import { setVerification, type Verification } from "../../utils";
 import { passwordValidation } from "../../validation";
-import { gRPCToHttpError } from "../utils";
+import { gRPCToHttpErrorPrivate } from "../utils";
 
 const schema = z.object({
   password: passwordValidation,
@@ -23,7 +23,7 @@ export const passwordVerification = defineAction({
         password: { value: input.password },
         method: input.method,
       })
-      .catch(gRPCToHttpError);
+      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
 
     if (!res.expires) {
       throw new ActionError({
