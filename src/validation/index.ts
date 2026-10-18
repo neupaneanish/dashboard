@@ -62,7 +62,7 @@ export const mobileSchema = () => {
 
 export const passwordValidation = z
   .string()
-  .or(z.null())
+  .nullish()
   .transform((val) => val ?? "")
   .pipe(
     z

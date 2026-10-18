@@ -1,14 +1,14 @@
 import { ActionError, defineAction } from "astro:actions";
 
-import { COOKIES_KEY_CHANGE_PASSWORD } from "../../constants";
-import { gatewayAuthenticationClient } from "../../libs/grpc";
-import type { SessionExpired } from "../../utils";
+import { COOKIES_KEY_CHANGE_PASSWORD } from "../../../constants";
+import { gatewayAuthenticationClient } from "../../../libs/grpc";
+import type { SessionExpired } from "../../../utils";
 import {
   deletePrivateCookies,
   deletePrivateCookiesExpire,
-} from "../../utils/cookies";
-import { resetChangePasswordSchema } from "../../validation";
-import { gRPCToHttpErrorPrivateSession } from "../utils";
+} from "../../../utils/cookies";
+import { resetChangePasswordSchema } from "../../../validation";
+import { gRPCToHttpErrorPrivateSession } from "../../utils";
 
 export const changePassword = defineAction({
   accept: "form",

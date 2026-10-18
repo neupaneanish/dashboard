@@ -2,14 +2,14 @@ import { timestampFromDate } from "@bufbuild/protobuf/wkt";
 import { z } from "astro/zod";
 import { defineAction } from "astro:actions";
 
-import { rootAuthenticationClient } from "../../libs/grpc";
-import { gRPCToHttpErrorPrivate } from "../utils";
+import { rootAuthenticationClient } from "../../../libs/grpc.ts";
+import { gRPCToHttpErrorPrivate } from "../../utils.ts";
 
 const schema = z.object({
   id: z.uuidv7(),
   username: z
     .string()
-    .or(z.null())
+    .nullable()
     .transform((val) => val ?? "")
     .pipe(
       z

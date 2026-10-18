@@ -1,11 +1,11 @@
 import { z } from "astro/zod";
 import { ActionError, defineAction } from "astro:actions";
 
-import { gatewayAuthenticationClient } from "../../libs/grpc.ts";
-import { getEnableTwoFactor, type SessionExpired } from "../../utils";
-import { deletePrivateCookiesExpire } from "../../utils/cookies.ts";
-import { codeSchema } from "../../validation";
-import { gRPCToHttpErrorPrivateSession } from "../utils.ts";
+import { gatewayAuthenticationClient } from "../../../libs/grpc";
+import { getEnableTwoFactor, type SessionExpired } from "../../../utils";
+import { deletePrivateCookiesExpire } from "../../../utils/cookies";
+import { codeSchema } from "../../../validation";
+import { gRPCToHttpErrorPrivateSession } from "../../utils";
 
 export const enableTwoFactor = defineAction({
   accept: "form",

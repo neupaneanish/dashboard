@@ -8,17 +8,17 @@ import {
   COOKIES_KEY_ENABLE_2FA,
   COOKIES_KEY_VERIFICATION_SESSION,
   COOKIES_KEY_VERIFICATION_SESSION_METHOD,
-} from "../../constants";
-import { gatewayAuthenticationClient } from "../../libs/grpc";
-import { PasswordVerificationMethod } from "../../protobuf/gateway/authentication/v1/authentication_pb";
-import type { EnableTwoFactor } from "../../utils";
+} from "../../../constants";
+import { gatewayAuthenticationClient } from "../../../libs/grpc.ts";
+import { PasswordVerificationMethod } from "../../../protobuf/gateway/authentication/v1/authentication_pb.ts";
+import type { EnableTwoFactor } from "../../../utils";
 import {
   deletePrivateCookiesExpire,
   deletePrivateCookiesOnly,
   setCookies,
-} from "../../utils/cookies";
-import { codeValidation } from "../../validation";
-import { gRPCToHttpErrorPrivateSession, verificationCheck } from "../utils";
+} from "../../../utils/cookies.ts";
+import { codeValidation } from "../../../validation";
+import { gRPCToHttpErrorPrivateSession, verificationCheck } from "../../utils";
 
 export const sessionVerification = defineAction({
   accept: "form",

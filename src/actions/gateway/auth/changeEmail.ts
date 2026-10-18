@@ -1,14 +1,14 @@
 import { z } from "astro/zod";
 import { ActionError, defineAction } from "astro:actions";
 
-import { COOKIES_KEY_CHANGE_EMAIL } from "../../constants";
-import { gatewayAuthenticationClient } from "../../libs/grpc";
-import type { SessionExpired } from "../../utils";
+import { COOKIES_KEY_CHANGE_EMAIL } from "../../../constants";
+import { gatewayAuthenticationClient } from "../../../libs/grpc.ts";
+import type { SessionExpired } from "../../../utils";
 import {
   deletePrivateCookies,
   deletePrivateCookiesExpire,
-} from "../../utils/cookies";
-import { gRPCToHttpErrorPrivateSession } from "../utils";
+} from "../../../utils/cookies.ts";
+import { gRPCToHttpErrorPrivateSession } from "../../utils";
 
 const schema = z.object({
   email: z.email("Enter a valid email"),

@@ -2,12 +2,12 @@ import { timestampDate } from "@bufbuild/protobuf/wkt";
 import { z } from "astro/zod";
 import { ActionError, defineAction } from "astro:actions";
 
-import { COOKIES_KEY_VERIFICATION_SESSION } from "../../constants";
-import { gatewayAuthenticationClient } from "../../libs/grpc.ts";
-import { PasswordVerificationMethod } from "../../protobuf/gateway/authentication/v1/authentication_pb";
-import { setVerification, type Verification } from "../../utils";
-import { passwordValidation } from "../../validation";
-import { gRPCToHttpErrorPrivate } from "../utils";
+import { COOKIES_KEY_VERIFICATION_SESSION } from "../../../constants";
+import { gatewayAuthenticationClient } from "../../../libs/grpc.ts";
+import { PasswordVerificationMethod } from "../../../protobuf/gateway/authentication/v1/authentication_pb.ts";
+import { setVerification, type Verification } from "../../../utils";
+import { passwordValidation } from "../../../validation";
+import { gRPCToHttpErrorPrivate } from "../../utils.ts";
 
 const schema = z.object({
   password: passwordValidation,

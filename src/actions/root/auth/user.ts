@@ -1,11 +1,11 @@
 import { z } from "astro/zod";
 import { ActionError, defineAction } from "astro:actions";
 
-import { rootAuthenticationClient } from "../../libs/grpc";
-import { gRPCToHttpErrorPrivate } from "../utils";
+import { rootAuthenticationClient } from "../../../libs/grpc.ts";
+import { gRPCToHttpErrorPrivate } from "../../utils.ts";
 
 export const user = defineAction({
-  handler: async ({ id }: { id: string }, context) => {
+  handler: async (id: string, context) => {
     const isUUID = z.uuidv7().safeParse(id).success;
 
     if (!isUUID) {

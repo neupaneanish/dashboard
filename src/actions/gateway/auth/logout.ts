@@ -1,9 +1,9 @@
 import { defineAction } from "astro:actions";
 
-import { COOKIES_KEY_SESSION } from "../../constants";
-import { gatewayAuthenticationClient } from "../../libs/grpc";
-import { deletePrivateCookiesOnly } from "../../utils/cookies";
-import { gRPCToHttpErrorPrivate } from "../utils";
+import { COOKIES_KEY_SESSION } from "../../../constants";
+import { gatewayAuthenticationClient } from "../../../libs/grpc";
+import { deletePrivateCookiesOnly } from "../../../utils/cookies";
+import { gRPCToHttpErrorPrivate } from "../../utils";
 
 export const logout = defineAction({
   handler: async (_, context) => {
