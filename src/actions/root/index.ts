@@ -1,8 +1,8 @@
-import { updateRole } from "./updateRole";
-import { updateStatus } from "./updateStatus";
-import { updateUsername } from "./updateUsername";
-import { user } from "./user";
-import { users } from "./users";
+import { updateRole } from "./auth/updateRole";
+import { updateStatus } from "./auth/updateStatus";
+import { updateUsername } from "./auth/updateUsername";
+import { user } from "./auth/user";
+import { users } from "./auth/users";
 
 export const root = {
   updateRole,
