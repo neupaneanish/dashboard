@@ -3,14 +3,45 @@ import { z } from "astro/zod";
 import { defineAction } from "astro:actions";
 
 import { gatewayProfileClient } from "../../../libs/grpc";
-import { createUpdateExperienceSchema } from "../../../schema";
+import {
+  dateSchema,
+  optionalDateSchema,
+  optionalDescription,
+  textSchema,
+} from "../../../schema";
 import { gRPCToHttpErrorPrivate } from "../../utils";
 
-const schema = z.object({
-  id: z.uuidv7(),
-  experience: createUpdateExperienceSchema,
-  updatedAt: z.coerce.date(),
-});
+const schema = z
+  .object({
+    id: z.uuidv7(),
+    title: textSchema(5, 64, "Title"),
+    companyName: textSchema(5, 64, "Company Name"),
+    location: textSchema(3, 64, "Location"),
+    locationType: z.enum(["onsite", "hybrid", "remote"]),
+    startDate: dateSchema("Start Date"),
+    endDate: optionalDateSchema("End Date"),
+    description: optionalDescription("Description"),
+    updatedAt: z.coerce.date(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.endDate) {
+      const now = new Date();
+      if (data.endDate > now) {
+        ctx.addIssue({
+          code: "custom",
+          message: "End date cannot be in the future.",
+          path: ["endDate"],
+        });
+      }
+      if (data.endDate <= data.startDate) {
+        ctx.addIssue({
+          code: "custom",
+          message: "End date must be after the start date.",
+          path: ["endDate"],
+        });
+      }
+    }
+  });
 
 export const updateExperience = defineAction({
   accept: "form",
@@ -20,15 +51,15 @@ export const updateExperience = defineAction({
       .updateExperience({
         id: input.id,
         experience: {
-          title: input.experience.title,
-          companyName: input.experience.companyName,
-          location: input.experience.location,
-          locationType: input.experience.locationType,
-          startDate: timestampFromDate(input.experience.startDate),
-          endDate: input.experience.endDate
-            ? timestampFromDate(input.experience.endDate)
-            : input.experience.endDate,
-          description: input.experience.description,
+          title: input.title,
+          companyName: input.companyName,
+          location: input.location,
+          locationType: input.locationType,
+          startDate: timestampFromDate(input.startDate),
+          endDate: input.endDate
+            ? timestampFromDate(input.endDate)
+            : input.endDate,
+          description: input.description,
         },
         updatedAt: timestampFromDate(input.updatedAt),
       })

@@ -1,4 +1,4 @@
-import { timestampDate } from "@bufbuild/protobuf/wkt";
+import { type Timestamp, timestampDate } from "@bufbuild/protobuf/wkt";
 import { Code, ConnectError } from "@connectrpc/connect";
 import type { AstroCookies } from "astro";
 import { ActionError, type ActionErrorCode } from "astro:actions";
@@ -17,11 +17,11 @@ import {
   deletePrivateCookies,
   deletePrivateCookiesExpire,
   deletePublicCookies,
-} from "../utils/cookies.ts";
+} from "../utils/cookies";
 import {
   PasswordVerificationHeading,
   VerificationHeading,
-} from "../utils/heading.ts";
+} from "../utils/heading";
 
 const gRPCCode = (code: Code): ActionErrorCode => {
   switch (code) {
@@ -226,3 +226,12 @@ export const verificationCheck = (cookies: AstroCookies, key: string) => {
 
   return { cookie, errorMessage };
 };
+
+export interface DeleteData {
+  id: string;
+  updatedAt: Timestamp;
+}
+
+export interface DeleteDataRoot extends DeleteData {
+  userId: string;
+}

@@ -1,33 +1,25 @@
 import { z } from "astro/zod";
 import { defineAction } from "astro:actions";
 
-import { externalAuthenticationClient } from "../../libs/grpc.ts";
+import { externalAuthenticationClient } from "../../libs/grpc";
+import { usernameSchema } from "../../schema";
 import { mobileSchema, passwordSchema } from "../../validation";
-import { gRPCToHttpError, verificationSession } from "../utils.ts";
+import { gRPCToHttpError, verificationSession } from "../utils";
 
 const schema = z
   .object({
     email: z.email("Enter a valid email"),
     password: z
       .string()
-      .or(z.null())
+      .nullable()
       .transform((val) => val ?? "")
       .pipe(passwordSchema()),
     confirmPassword: z
       .string()
-      .or(z.null())
+      .nullable()
       .transform((val) => val ?? "")
       .pipe(z.string().min(1, "Confirm Password is required")),
-    username: z
-      .string()
-      .or(z.null())
-      .transform((val) => val ?? "")
-      .pipe(
-        z
-          .string()
-          .min(1, "Username is required")
-          .regex(/^[a-z]+[0-9]*$/, "Enter a valid username"),
-      ),
+    username: usernameSchema,
     phone: z
       .e164("Mobile number must be international format")
       .pipe(mobileSchema()),

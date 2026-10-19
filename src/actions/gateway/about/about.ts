@@ -1,7 +1,7 @@
 import { defineAction } from "astro:actions";
 
-import { gatewayProfileClient } from "../../../libs/grpc.ts";
-import { gRPCToHttpErrorPrivate } from "../../utils.ts";
+import { gatewayProfileClient } from "../../../libs/grpc";
+import { gRPCToHttpErrorPrivate } from "../../utils";
 
 export const about = defineAction({
   handler: async (_, context) => {

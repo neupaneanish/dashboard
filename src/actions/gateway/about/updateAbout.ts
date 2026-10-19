@@ -1,24 +1,34 @@
 import { timestampFromDate } from "@bufbuild/protobuf/wkt";
 import { z } from "astro/zod";
-import { defineAction } from "astro:actions";
+import { ActionError, defineAction } from "astro:actions";
 
 import { gatewayProfileClient } from "../../../libs/grpc.ts";
+import { aboutSchema } from "../../../schema";
 import { gRPCToHttpErrorPrivate } from "../../utils.ts";
 
 const schema = z.object({
-  about: z.string().min(20, "About must be at least 20 characters long"),
-  updatedAt: z.date(),
+  about: aboutSchema,
+  updatedAt: z.coerce.date(),
 });
 
 export const updateAbout = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    await gatewayProfileClient
+    const res = await gatewayProfileClient
       .updateAbout({
         about: input.about,
         updatedAt: timestampFromDate(input.updatedAt),
       })
       .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+
+    if (!res.about) {
+      throw new ActionError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Something went wrong",
+      });
+    }
+
+    return res.about;
   },
 });

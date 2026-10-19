@@ -1,11 +1,12 @@
 import { z } from "astro/zod";
 import { defineAction } from "astro:actions";
 
-import { gatewayProfileClient } from "../../../libs/grpc.ts";
-import { gRPCToHttpErrorPrivate } from "../../utils.ts";
+import { gatewayProfileClient } from "../../../libs/grpc";
+import { aboutSchema } from "../../../schema";
+import { gRPCToHttpErrorPrivate } from "../../utils";
 
 const schema = z.object({
-  about: z.string().min(20, "About must be at least 20 characters long"),
+  about: aboutSchema,
 });
 
 export const createAbout = defineAction({

@@ -1,8 +1,8 @@
 import { z } from "astro/zod";
 import { defineAction } from "astro:actions";
 
-import { gatewayProfileClient } from "../../../libs/grpc.ts";
-import { gRPCToHttpErrorPrivate } from "../../utils.ts";
+import { gatewayProfileClient } from "../../../libs/grpc";
+import { gRPCToHttpErrorPrivate } from "../../utils";
 
 const schema = z.object({
   hostname: z.hostname(),

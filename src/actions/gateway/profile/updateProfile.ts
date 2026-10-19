@@ -4,7 +4,7 @@ import { defineAction } from "astro:actions";
 
 import { gatewayProfileClient } from "../../../libs/grpc";
 import { nameSchema, titleSchema } from "../../../schema";
-import { gRPCToHttpErrorPrivate } from "../../utils.ts";
+import { gRPCToHttpErrorPrivate } from "../../utils";
 
 const schema = z.object({
   name: nameSchema,

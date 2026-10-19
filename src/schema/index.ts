@@ -83,11 +83,11 @@ export const socialUsername = z
   .pipe(
     z
       .string()
-      .min(5, `Username must be at least 5 characters long`)
+      .min(5, `Username is required`)
       .max(64, `Username must be no more than 64 characters long`)
       .regex(
         /^[a-z0-9][a-z0-9._-]*[a-z0-9]$/,
-        "Username contains invalid characters or structure",
+        "Username contains invalid characters",
       ),
   )
   .refine((val) => !/([._-]{2,})/.test(val), {
@@ -96,88 +96,157 @@ export const socialUsername = z
 
 export const titleSchema = z
   .string()
-  .min(3, "Title must be at least 3 characters long")
-  .max(64, "Title must be no more than 64 characters long")
-  .regex(
-    /^[a-zA-Z0-9][a-zA-Z0-9 .'&/()-]*[a-zA-Z0-9).]$/,
-    "Title contains invalid characters or structure",
-  )
-  .refine((val) => !/([ .'&/()-]{2,})/.test(val), {
-    message:
-      "Title must not contain consecutive dots, spaces, hyphens, symbols, or brackets",
-  });
-
-export const createUpdateExperienceSchema = z
-  .object({
-    title: textSchema(5, 64, "Title"),
-    companyName: textSchema(5, 64, "Company Name"),
-    location: textSchema(3, 64, "Location"),
-    locationType: z.enum(["onsite", "hybrid", "remote"]),
-    startDate: dateSchema("Start Date"),
-    endDate: optionalDateSchema("End Date"),
-    description: optionalDescription("Description"),
-  })
-  .superRefine((data, ctx) => {
-    if (data.endDate) {
-      const now = new Date();
-      if (data.endDate > now) {
-        ctx.addIssue({
-          code: "custom",
-          message: "End date cannot be in the future.",
-          path: ["endDate"],
-        });
-      }
-      if (data.endDate <= data.startDate) {
-        ctx.addIssue({
-          code: "custom",
-          message: "End date must be after the start date.",
-          path: ["endDate"],
-        });
-      }
-    }
-  });
-
-export const createUpdateEducationSchema = z
-  .object({
-    school: textSchema(3, 64, "School"),
-    degree: textSchema(5, 64, "Degree"),
-    address: textSchema(3, 64, "Address"),
-    affiliation: optionalString(5, 64, "Affiliation"),
-    fieldOfStudy: optionalString(5, 64, "Field of study"),
-    concentration: optionalString(5, 64, "Concentration"),
-    description: optionalDescription("Description"),
-    startDate: dateSchema("Start Date"),
-    endDate: optionalDateSchema("End Date"),
-  })
-  .superRefine((data, ctx) => {
-    if (data.endDate) {
-      const now = new Date();
-      if (data.endDate > now) {
-        ctx.addIssue({
-          code: "custom",
-          message: "End date cannot be in the future.",
-          path: ["endDate"],
-        });
-      }
-      if (data.endDate <= data.startDate) {
-        ctx.addIssue({
-          code: "custom",
-          message: "End date must be after the start date.",
-          path: ["endDate"],
-        });
-      }
-    }
-  });
+  .nullable()
+  .transform((val) => val ?? "")
+  .pipe(
+    z
+      .string()
+      .min(3, "Title must be at least 3 characters long")
+      .max(64, "Title must be no more than 64 characters long")
+      .regex(
+        /^[a-zA-Z0-9][a-zA-Z0-9 .'&/()-]*[a-zA-Z0-9).]$/,
+        "Title contains invalid characters or structure",
+      )
+      .refine((val) => !/([ .'&/()-]{2,})/.test(val), {
+        message:
+          "Title must not contain consecutive dots, spaces, hyphens, symbols, or brackets",
+      }),
+  );
 
 export const nameSchema = z
   .string()
-  .min(5, "Name must be at least 5 characters long")
-  .max(24, "Name must be no more than 24 characters long")
-  .regex(
-    /^[a-zA-Z][a-zA-Z .'-]*[a-zA-Z.]$/,
-    "Name contains invalid characters or starting structure",
-  )
-  .refine((val) => !/([ .,'-]{2,})/.test(val), {
-    message:
-      "Name must not contain consecutive dots, spaces, hyphens, or apostrophes",
-  });
+  .nullable()
+  .transform((val) => val ?? "")
+  .pipe(
+    z
+      .string()
+      .min(5, "Name is required")
+      .max(24, "Name must be no more than 24 characters long")
+      .regex(
+        /^[a-zA-Z][a-zA-Z .'-]*[a-zA-Z.]$/,
+        "Name contains invalid characters or starting structure",
+      )
+      .refine((val) => !/([ .,'-]{2,})/.test(val), {
+        message:
+          "Name must not contain consecutive dots, spaces, hyphens, or apostrophes",
+      }),
+  );
+
+export const iconNameSchema = z
+  .string()
+  .nullable()
+  .transform((val) => val ?? "")
+  .pipe(
+    z
+      .string()
+      .min(1, "Name is required")
+      .max(24, "Name must be no more than 24 characters long")
+      .regex(
+        /^[a-zA-Z0-9]+( [a-zA-Z0-9]+)*$/,
+        "Name must be alphanumeric with single spaces only",
+      )
+      .refine((val) => !/( {2,})/.test(val), {
+        message: "Name must not contain consecutive spaces",
+      }),
+  );
+
+export const iconSiteSuffixSchema = z
+  .string()
+  .nullable()
+  .optional()
+  .transform((val) => (val === null || val === "" ? undefined : val))
+  .pipe(
+    z
+      .string()
+      .min(1, "Site suffix is required")
+      .max(32, "Site suffix must be no more than 32 characters long")
+      .regex(
+        /^\/[a-zA-Z0-9_@.~-]*\/?$/,
+        "Site suffix must start with a slash and contain valid path characters",
+      )
+      .refine((val) => !/(\/\/|\.\.|--|__|~~)/.test(val), {
+        message:
+          "Site suffix must not contain consecutive slashes, dots, underscores, or hyphens",
+      })
+      .optional(),
+  );
+
+export const iconSuffixSchema = z
+  .string()
+  .nullable()
+  .transform((val) => val ?? "")
+  .pipe(
+    z
+      .string()
+      .min(1, "Suffix is required")
+      .max(128, "Suffix must be no more than 128 characters long")
+      .regex(
+        /^[a-zA-Z0-9]([a-zA-Z0-9/-]*[a-zA-Z0-9])?(\.svg)?$/,
+        "Suffix contains invalid characters or structure",
+      )
+      .refine((val) => !/([/-]{2,})/.test(val), {
+        message: "Suffix must not contain consecutive slashes or hyphens",
+      }),
+  );
+
+export const iconColorSchema = z
+  .string()
+  .nullable()
+  .transform((val) => val ?? "")
+  .pipe(
+    z
+      .string()
+      .length(7, "Color must be exactly 7 characters (including #)")
+      .regex(
+        /^#[0-9a-fA-F]{6}$/,
+        "Enter a valid hex color format (e.g. #ffffff)",
+      ),
+  );
+
+export const templateNameSchema = z
+  .string()
+  .nullable()
+  .transform((val) => val ?? "")
+  .pipe(
+    z
+      .string()
+      .min(4, "Name is required")
+      .max(24, "Name cannot exceed 24 characters")
+      .regex(/^[a-zA-Z][a-zA-Z0-9 ]*[a-zA-Z0-9]$/, "Enter a valid name")
+      .refine((val) => !/ {2,}/.test(val), {
+        message: "Name must not contain consecutive spaces",
+      }),
+  );
+
+export const templateDescriptionSchema = z
+  .string()
+  .nullable()
+  .transform((val) => val ?? "")
+  .pipe(
+    z
+      .string()
+      .min(4, "Description is required")
+      .max(256, "Description cannot exceed 256 characters"),
+  );
+
+export const aboutSchema = z
+  .string()
+  .nullable()
+  .transform((val) => val ?? "")
+  .pipe(
+    z
+      .string()
+      .min(20, "About must be at least 20 characters long")
+      .max(1000, "About must be no more than 1000 characters long"),
+  );
+
+export const usernameSchema = z
+  .string()
+  .nullable()
+  .transform((val) => val ?? "")
+  .pipe(
+    z
+      .string()
+      .min(5, "Username must be minimum 5 characters")
+      .regex(/^[a-z]+[0-9]*$/, "Enter a valid username"),
+  );

@@ -4,7 +4,7 @@ import { defineAction } from "astro:actions";
 
 import { gatewayProfileClient } from "../../../libs/grpc";
 import { socialUsername } from "../../../schema";
-import { gRPCToHttpErrorPrivate } from "../../utils.ts";
+import { gRPCToHttpErrorPrivate } from "../../utils";
 
 const schema = z.object({
   id: z.uuidv7(),

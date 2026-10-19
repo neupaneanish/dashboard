@@ -86,7 +86,7 @@ export const codeValidation = z
   .object({
     code: z
       .string()
-      .or(z.null())
+      .nullable()
       .transform((val) => val ?? ""),
     method: z.enum(["email", "totp", "recovery"]),
   })
@@ -106,12 +106,12 @@ export const resetChangePasswordSchema = z
   .object({
     password: z
       .string()
-      .or(z.null())
+      .nullable()
       .transform((val) => val ?? "")
       .pipe(passwordSchema()),
     confirmPassword: z
       .string()
-      .or(z.null())
+      .nullable()
       .transform((val) => val ?? "")
       .pipe(z.string().min(1, "Confirm Password is required")),
   })

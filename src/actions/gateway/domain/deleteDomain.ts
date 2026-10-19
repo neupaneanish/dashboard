@@ -1,25 +1,22 @@
-import { timestampFromDate } from "@bufbuild/protobuf/wkt";
-import { z } from "astro/zod";
+import { type Timestamp } from "@bufbuild/protobuf/wkt";
 import { defineAction } from "astro:actions";
 
 import { gatewayProfileClient } from "../../../libs/grpc";
 import { gRPCToHttpErrorPrivate } from "../../utils";
 
-const schema = z.object({
-  id: z.uuidv7(),
-  hostname: z.hostname(),
-  updatedAt: z.coerce.date(),
-});
+interface DeleteDomain {
+  id: string;
+  hostname: string;
+  updatedAt: Timestamp;
+}
 
 export const deleteDomain = defineAction({
-  accept: "form",
-  input: schema,
-  handler: async (input, context) => {
+  handler: async (payload: DeleteDomain, context) => {
     await gatewayProfileClient
       .deleteDomain({
-        id: input.id,
-        hostname: input.hostname,
-        updatedAt: timestampFromDate(input.updatedAt),
+        id: payload.id,
+        hostname: payload.hostname,
+        updatedAt: payload.updatedAt,
       })
       .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
   },
