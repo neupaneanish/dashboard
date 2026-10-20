@@ -23,12 +23,12 @@ export const updateStatus = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    return await rootAuthenticationClient
+    return await rootAuthenticationClient(context)
       .updateStatus({
         id: input.id,
         status: input.status,
         updatedAt: timestampFromDate(input.updatedAt),
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

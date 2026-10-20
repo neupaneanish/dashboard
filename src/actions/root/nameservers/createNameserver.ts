@@ -22,11 +22,11 @@ export const createNameserver = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    await rootProfileClient
+    await rootProfileClient(context)
       .createNameserver({
         cname: input.cname,
         hostname: input.hostname,
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

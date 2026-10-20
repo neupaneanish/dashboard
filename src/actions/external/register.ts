@@ -38,7 +38,7 @@ export const register = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    const res = await externalAuthenticationClient
+    const res = await externalAuthenticationClient(context)
       .register({
         email: input.email,
         password: { value: input.password },

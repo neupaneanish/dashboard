@@ -16,7 +16,7 @@ export const createProfile = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    await gatewayProfileClient
+    await gatewayProfileClient(context)
       .createProfile({
         dob: timestampFromDate(input.dob),
         profile: {
@@ -24,6 +24,6 @@ export const createProfile = defineAction({
           title: input.title,
         },
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

@@ -5,12 +5,12 @@ import { type DeleteDataRoot, gRPCToHttpErrorPrivate } from "../../utils";
 
 export const deleteExperience = defineAction({
   handler: async (payload: DeleteDataRoot, context) => {
-    return await rootProfileClient
+    return await rootProfileClient(context)
       .deleteExperience({
         id: payload.id,
         userId: payload.userId,
         updatedAt: payload.updatedAt,
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

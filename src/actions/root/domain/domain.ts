@@ -13,8 +13,8 @@ export const domain = defineAction({
       });
     }
 
-    return await rootProfileClient
+    return await rootProfileClient(context)
       .domain({ id: input.id, userId: input.userId })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

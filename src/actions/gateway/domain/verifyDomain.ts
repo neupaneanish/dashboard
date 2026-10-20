@@ -13,13 +13,13 @@ interface VerifyDomain {
 
 export const verifyDomain = defineAction({
   handler: async (payload: VerifyDomain, context) => {
-    await gatewayProfileClient
+    await gatewayProfileClient(context)
       .verifyDomain({
         id: payload.id,
         txt: payload.txt,
         hostname: payload.hostname,
         updatedAt: payload.updatedAt,
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

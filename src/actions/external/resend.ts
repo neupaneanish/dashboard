@@ -41,7 +41,7 @@ export const resend = defineAction({
       COOKIES_KEY_VERIFICATION_SESSION,
     );
 
-    const res = await externalAuthenticationClient
+    const res = await externalAuthenticationClient(context)
       .resend({ session: cookie.session })
       .catch((e) => gRPCToHttpErrorPublic(e, context.cookies, errorMessage));
 

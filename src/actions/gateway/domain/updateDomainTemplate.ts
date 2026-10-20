@@ -15,12 +15,12 @@ export const updateDomainTemplate = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    await gatewayProfileClient
+    await gatewayProfileClient(context)
       .updateDomainTemplate({
         id: input.id,
         templateId: input.templateId,
         updatedAt: timestampFromDate(input.updatedAt),
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

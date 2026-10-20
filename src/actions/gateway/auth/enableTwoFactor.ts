@@ -28,14 +28,12 @@ export const enableTwoFactor = defineAction({
       });
     }
 
-    const res = await gatewayAuthenticationClient
+    const res = await gatewayAuthenticationClient(context)
       .confirmTwoFactor({
         session: cookie.session,
         code: input.code,
       })
-      .catch((e) =>
-        gRPCToHttpErrorPrivateSession(e, context.cookies, errorMessage),
-      );
+      .catch((e) => gRPCToHttpErrorPrivateSession(e, context, errorMessage));
 
     return { codes: res.codes };
   },

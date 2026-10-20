@@ -29,7 +29,7 @@ export const sessionVerification = defineAction({
       COOKIES_KEY_VERIFICATION_SESSION,
     );
 
-    const res = await gatewayAuthenticationClient
+    const res = await gatewayAuthenticationClient(context)
       .passwordSessionVerification({
         session: cookie.session,
         code: {
@@ -37,9 +37,7 @@ export const sessionVerification = defineAction({
           value: input.code,
         },
       })
-      .catch((e) =>
-        gRPCToHttpErrorPrivateSession(e, context.cookies, errorMessage),
-      );
+      .catch((e) => gRPCToHttpErrorPrivateSession(e, context, errorMessage));
 
     switch (res.response.case) {
       case "password":

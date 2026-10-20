@@ -50,7 +50,7 @@ export const updateEducation = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    await gatewayProfileClient
+    await gatewayProfileClient(context)
       .updateEducation({
         id: input.id,
         education: {
@@ -68,6 +68,6 @@ export const updateEducation = defineAction({
         },
         updatedAt: timestampFromDate(input.updatedAt),
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

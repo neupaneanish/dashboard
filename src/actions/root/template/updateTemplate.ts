@@ -18,7 +18,7 @@ export const updateTemplate = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    await rootProfileClient
+    await rootProfileClient(context)
       .updateTemplate({
         id: input.id,
         template: {
@@ -28,6 +28,6 @@ export const updateTemplate = defineAction({
         },
         updatedAt: timestampFromDate(input.updatedAt),
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

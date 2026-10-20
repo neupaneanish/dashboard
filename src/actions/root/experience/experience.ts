@@ -16,8 +16,8 @@ export const experience = defineAction({
       });
     }
 
-    return await rootProfileClient
+    return await rootProfileClient(context)
       .experience({ id: input.id, userId: input.userId })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

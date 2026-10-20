@@ -5,8 +5,8 @@ import { gRPCToHttpErrorPrivate } from "../../utils";
 
 export const users = defineAction({
   handler: async (_, context) => {
-    return await rootAuthenticationClient
+    return await rootAuthenticationClient(context)
       .users({})
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

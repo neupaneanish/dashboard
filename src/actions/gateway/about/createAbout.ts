@@ -13,10 +13,10 @@ export const createAbout = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    await gatewayProfileClient
+    await gatewayProfileClient(context)
       .createAbout({
         about: input.about,
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

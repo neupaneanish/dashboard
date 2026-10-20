@@ -30,17 +30,15 @@ export const changePassword = defineAction({
       });
     }
 
-    await gatewayAuthenticationClient
+    await gatewayAuthenticationClient(context)
       .changePassword({
         password: { value: input.password },
         confirmPassword: { value: input.confirmPassword },
         session: cookie,
       })
-      .catch((e) =>
-        gRPCToHttpErrorPrivateSession(e, context.cookies, errorMessage),
-      );
+      .catch((e) => gRPCToHttpErrorPrivateSession(e, context, errorMessage));
 
-    deletePrivateCookies(context.cookies, {
+    deletePrivateCookies(context, {
       success: true,
       title: "Change Password",
       message:

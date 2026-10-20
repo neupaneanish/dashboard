@@ -1,7 +1,7 @@
 import { VALKEY_URL } from "astro:env/server";
 import { Valkey } from "iovalkey";
 
-export const valkey = async () => {
+const valkey = async () => {
   const vk = new Valkey({
     host: VALKEY_URL,
     readOnly: true,
@@ -22,3 +22,5 @@ export const valkey = async () => {
     process.exit(1);
   }
 };
+
+export const client = await valkey();

@@ -16,7 +16,7 @@ export const updateUsername = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    return await rootAuthenticationClient
+    return await rootAuthenticationClient(context)
       .updateUsername({
         id: input.id,
         username: {
@@ -24,6 +24,6 @@ export const updateUsername = defineAction({
           updatedAt: timestampFromDate(input.updatedAt),
         },
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

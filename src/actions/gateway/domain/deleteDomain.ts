@@ -12,12 +12,12 @@ interface DeleteDomain {
 
 export const deleteDomain = defineAction({
   handler: async (payload: DeleteDomain, context) => {
-    await gatewayProfileClient
+    await gatewayProfileClient(context)
       .deleteDomain({
         id: payload.id,
         hostname: payload.hostname,
         updatedAt: payload.updatedAt,
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

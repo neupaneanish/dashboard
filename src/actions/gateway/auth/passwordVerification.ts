@@ -18,12 +18,12 @@ export const passwordVerification = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    const res = await gatewayAuthenticationClient
+    const res = await gatewayAuthenticationClient(context)
       .passwordVerification({
         password: { value: input.password },
         method: input.method,
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
 
     if (!res.expires) {
       throw new ActionError({

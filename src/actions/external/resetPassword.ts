@@ -27,7 +27,7 @@ export const resetPassword = defineAction({
       });
     }
 
-    await externalAuthenticationClient
+    await externalAuthenticationClient(context)
       .resetPassword({
         password: { value: input.password },
         confirmPassword: { value: input.confirmPassword },

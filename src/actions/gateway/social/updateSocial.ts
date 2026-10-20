@@ -16,10 +16,10 @@ export const updateSocial = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    await gatewayProfileClient
+    await gatewayProfileClient(context)
       .updateSocial({
         social: { id: input.id, updatedAt: timestampFromDate(input.updatedAt) },
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

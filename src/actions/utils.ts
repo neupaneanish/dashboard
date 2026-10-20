@@ -1,7 +1,11 @@
 import { type Timestamp, timestampDate } from "@bufbuild/protobuf/wkt";
 import { Code, ConnectError } from "@connectrpc/connect";
 import type { AstroCookies } from "astro";
-import { ActionError, type ActionErrorCode } from "astro:actions";
+import {
+  type ActionAPIContext,
+  ActionError,
+  type ActionErrorCode,
+} from "astro:actions";
 
 import {
   COOKIES_KEY_VERIFICATION,
@@ -98,25 +102,28 @@ export const gRPCToHttpErrorPublic = (
 
 export const gRPCToHttpErrorPrivateSession = (
   e: unknown,
-  cookies: AstroCookies,
+  context: ActionAPIContext,
   value: SessionExpired,
 ) => {
   if (e instanceof ConnectError) {
     switch (e.code) {
       case Code.FailedPrecondition:
-        deletePrivateCookiesExpire(cookies, value);
+        deletePrivateCookiesExpire(context.cookies, value);
         break;
       case Code.Unauthenticated:
-        deletePrivateCookies(cookies);
+        deletePrivateCookies(context);
         break;
     }
   }
   throw gRPCToHttpError(e);
 };
 
-export const gRPCToHttpErrorPrivate = (e: unknown, cookies: AstroCookies) => {
+export const gRPCToHttpErrorPrivate = (
+  e: unknown,
+  context: ActionAPIContext,
+) => {
   if (e instanceof ConnectError && e.code === Code.Unauthenticated) {
-    deletePrivateCookies(cookies);
+    deletePrivateCookies(context);
   }
   throw gRPCToHttpError(e);
 };

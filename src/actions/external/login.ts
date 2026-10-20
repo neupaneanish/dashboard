@@ -18,7 +18,7 @@ export const login = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    const res = await externalAuthenticationClient
+    const res = await externalAuthenticationClient(context)
       .login({
         email: input.email,
         password: { value: input.password },

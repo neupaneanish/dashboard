@@ -15,8 +15,8 @@ export const education = defineAction({
       });
     }
 
-    return await gatewayProfileClient
+    return await gatewayProfileClient(context)
       .education({ id: id })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

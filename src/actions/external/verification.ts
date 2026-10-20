@@ -31,7 +31,7 @@ export const verification = defineAction({
       COOKIES_KEY_VERIFICATION,
     );
 
-    const res = await externalAuthenticationClient
+    const res = await externalAuthenticationClient(context)
       .verification({
         code: {
           case: input.method,

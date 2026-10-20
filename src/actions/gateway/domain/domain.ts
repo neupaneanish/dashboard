@@ -15,8 +15,8 @@ export const domain = defineAction({
       });
     }
 
-    return await gatewayProfileClient
+    return await gatewayProfileClient(context)
       .domain({ id: id })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

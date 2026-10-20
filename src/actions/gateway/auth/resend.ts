@@ -39,11 +39,9 @@ export const resend = defineAction({
       COOKIES_KEY_VERIFICATION_SESSION,
     );
 
-    const res = await gatewayAuthenticationClient
+    const res = await gatewayAuthenticationClient(context)
       .resend({ session: cookie.session })
-      .catch((e) =>
-        gRPCToHttpErrorPrivateSession(e, context.cookies, errorMessage),
-      );
+      .catch((e) => gRPCToHttpErrorPrivateSession(e, context, errorMessage));
 
     if (!res.expires) {
       throw new ActionError({

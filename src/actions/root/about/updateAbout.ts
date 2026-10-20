@@ -16,13 +16,13 @@ export const updateAbout = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    const res = await rootProfileClient
+    const res = await rootProfileClient(context)
       .updateAbout({
         userId: input.userId,
         about: input.about,
         updatedAt: timestampFromDate(input.updatedAt),
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
 
     if (!res.about) {
       throw new ActionError({

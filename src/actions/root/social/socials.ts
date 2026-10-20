@@ -12,9 +12,9 @@ export const socials = defineAction({
         message: "User Socials not found",
       });
     }
-    const res = await rootProfileClient
+    const res = await rootProfileClient(context)
       .socials({ userId: userId })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
 
     return res.socials;
   },

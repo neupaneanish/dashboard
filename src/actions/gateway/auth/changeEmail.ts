@@ -34,13 +34,11 @@ export const changeEmail = defineAction({
       });
     }
 
-    await gatewayAuthenticationClient
+    await gatewayAuthenticationClient(context)
       .changeEmail({ email: input.email, session: session })
-      .catch((e) =>
-        gRPCToHttpErrorPrivateSession(e, context.cookies, errorMessage),
-      );
+      .catch((e) => gRPCToHttpErrorPrivateSession(e, context, errorMessage));
 
-    deletePrivateCookies(context.cookies, {
+    deletePrivateCookies(context, {
       success: true,
       title: "Change Email",
       message:

@@ -14,9 +14,9 @@ export const profile = defineAction({
         message: "Profile not found",
       });
     }
-    const res = await rootProfileClient
+    const res = await rootProfileClient(context)
       .profile({ userId: id })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
 
     if (!res.profile) {
       throw new ActionError({

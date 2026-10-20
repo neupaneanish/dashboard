@@ -51,7 +51,7 @@ export const updateEducation = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    await rootProfileClient
+    await rootProfileClient(context)
       .updateEducation({
         id: input.id,
         userId: input.userId,
@@ -70,6 +70,6 @@ export const updateEducation = defineAction({
         },
         updatedAt: timestampFromDate(input.updatedAt),
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

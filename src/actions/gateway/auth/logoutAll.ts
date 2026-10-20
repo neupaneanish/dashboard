@@ -7,11 +7,12 @@ import { gRPCToHttpErrorPrivate } from "../../utils";
 
 export const logoutAll = defineAction({
   handler: async (_, context) => {
-    await gatewayAuthenticationClient
+    await gatewayAuthenticationClient(context)
       .logoutAll({})
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
 
     deletePrivateCookiesOnly(context.cookies);
     context.cookies.delete(COOKIES_KEY_SESSION, { path: "/" });
+    context.locals.user = null;
   },
 });

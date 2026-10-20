@@ -26,7 +26,7 @@ export const updateIcon = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    await rootProfileClient
+    await rootProfileClient(context)
       .updateIcon({
         id: input.id,
         icon: {
@@ -39,6 +39,6 @@ export const updateIcon = defineAction({
         },
         updatedAt: timestampFromDate(input.updatedAt),
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

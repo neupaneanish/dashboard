@@ -10,7 +10,7 @@ import { VerificationMethod } from '../protobuf/external/authentication/v1/authe
 import { getVerification, type Verification } from '../utils';
 import { VerificationHeading } from '../utils/heading';
 
-if (Astro.cookies.has(COOKIES_KEY_SESSION)) {
+if (Astro.locals.user) {
   return Astro.redirect('/');
 }
 

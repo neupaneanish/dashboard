@@ -13,8 +13,8 @@ export const icon = defineAction({
       });
     }
 
-    return await rootProfileClient
+    return await rootProfileClient(context)
       .icon({ id: id })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

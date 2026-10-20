@@ -13,9 +13,9 @@ export const experiences = defineAction({
         message: "User Experiences not found",
       });
     }
-    const res = await rootProfileClient
+    const res = await rootProfileClient(context)
       .experiences({ userId: userId })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
 
     return res.experiences;
   },

@@ -48,7 +48,7 @@ export const updateExperience = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    await rootProfileClient
+    await rootProfileClient(context)
       .updateExperience({
         id: input.id,
         userId: input.userId,
@@ -65,6 +65,6 @@ export const updateExperience = defineAction({
         },
         updatedAt: timestampFromDate(input.updatedAt),
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

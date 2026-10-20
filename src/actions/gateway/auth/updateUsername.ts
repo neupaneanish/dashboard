@@ -15,13 +15,13 @@ export const updateUsername = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    return await gatewayAuthenticationClient
+    return await gatewayAuthenticationClient(context)
       .updateUsername({
         username: {
           value: input.username,
           updatedAt: timestampFromDate(input.updatedAt),
         },
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

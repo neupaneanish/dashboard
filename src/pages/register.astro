@@ -4,7 +4,7 @@ import PublicLayout from '../layouts/PublicLayout.astro';
 import { COOKIES_KEY_SESSION } from '../constants';
 import PasswordStrength from '../components/PasswordStrength.astro';
 
-if (Astro.cookies.has(COOKIES_KEY_SESSION)) {
+if (Astro.locals.user) {
   return Astro.redirect('/');
 }
 

@@ -13,8 +13,8 @@ export const template = defineAction({
       });
     }
 
-    return await rootProfileClient
+    return await rootProfileClient(context)
       .template({ id: id })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

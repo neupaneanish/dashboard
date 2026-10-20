@@ -1,12 +1,12 @@
 /// <reference types="astro/client" />
-import type { Valkey } from "iovalkey";
 
-declare global {
-  namespace App {
-    interface Locals {
-      valkey: Valkey;
-    }
+declare namespace App {
+  interface Locals {
+    user: {
+      username: string;
+      role: string;
+      session: string;
+      userID: string;
+    } | null;
   }
 }
-
-export {};

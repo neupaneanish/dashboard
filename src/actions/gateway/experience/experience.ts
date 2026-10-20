@@ -15,8 +15,8 @@ export const experience = defineAction({
       });
     }
 
-    return await gatewayProfileClient
+    return await gatewayProfileClient(context)
       .experience({ id: id })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

@@ -15,12 +15,12 @@ export const updateRole = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    return await rootAuthenticationClient
+    return await rootAuthenticationClient(context)
       .updateRole({
         id: input.id,
         role: input.role,
         updatedAt: timestampFromDate(input.updatedAt),
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

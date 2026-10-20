@@ -1,5 +1,6 @@
 import { type Timestamp, timestampDate } from "@bufbuild/protobuf/wkt";
 import type { AstroCookies } from "astro";
+import type { ActionAPIContext } from "astro:actions";
 
 import {
   COOKIES_KEY_CHANGE_EMAIL,
@@ -46,13 +47,14 @@ export const deletePrivateCookiesExpire = (
 };
 
 export const deletePrivateCookies = (
-  cookies: AstroCookies,
+  context: ActionAPIContext,
   value?: SessionExpired,
 ) => {
-  deletePrivateCookiesOnly(cookies);
-  cookies.delete(COOKIES_KEY_SESSION, { path: "/" });
+  deletePrivateCookiesOnly(context.cookies);
+  context.cookies.delete(COOKIES_KEY_SESSION, { path: "/" });
+  context.locals.user = null;
   setExpiredMessage(
-    cookies,
+    context.cookies,
     value
       ? value
       : {

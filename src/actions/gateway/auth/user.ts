@@ -5,8 +5,8 @@ import { gRPCToHttpErrorPrivate } from "../../utils";
 
 export const user = defineAction({
   handler: async (_, context) => {
-    return await gatewayAuthenticationClient
+    return await gatewayAuthenticationClient(context)
       .profile({})
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

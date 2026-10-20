@@ -14,8 +14,8 @@ export const nameserver = defineAction({
         message: "Nameserver not found",
       });
     }
-    return await rootProfileClient
+    return await rootProfileClient(context)
       .nameserver({ id: id })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

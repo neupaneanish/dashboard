@@ -14,9 +14,9 @@ export const about = defineAction({
         message: "About not found",
       });
     }
-    const res = await rootProfileClient
+    const res = await rootProfileClient(context)
       .about({ userId: id })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
 
     if (!res.about) {
       throw new ActionError({

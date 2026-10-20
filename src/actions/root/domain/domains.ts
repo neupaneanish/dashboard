@@ -15,11 +15,11 @@ export const domains = defineAction({
       });
     }
 
-    const res = await rootProfileClient
+    const res = await rootProfileClient(context)
       .domains({
         userId: userId,
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
 
     return res.domains;
   },

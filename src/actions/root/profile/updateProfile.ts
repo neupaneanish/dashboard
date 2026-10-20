@@ -17,7 +17,7 @@ export const updateProfile = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    const res = await rootProfileClient
+    const res = await rootProfileClient(context)
       .updateProfile({
         userId: input.userId,
         profile: {
@@ -26,7 +26,7 @@ export const updateProfile = defineAction({
         },
         updatedAt: timestampFromDate(input.updatedAt),
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
 
     if (!res.profile) {
       throw new ActionError({

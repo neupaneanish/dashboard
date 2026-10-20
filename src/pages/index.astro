@@ -1,8 +1,7 @@
 ---
 import PrivateLayout from '../layouts/PrivateLayout.astro';
-import { COOKIES_KEY_SESSION } from '../constants';
 
-if (!Astro.cookies.has(COOKIES_KEY_SESSION)) {
+if (!Astro.locals.user) {
   return Astro.redirect('/login');
 }
 ---

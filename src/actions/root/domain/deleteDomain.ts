@@ -13,13 +13,13 @@ interface DeleteDomain {
 
 export const deleteDomain = defineAction({
   handler: async (payload: DeleteDomain, context) => {
-    await rootProfileClient
+    await rootProfileClient(context)
       .deleteDomain({
         id: payload.id,
         userId: payload.userId,
         hostname: payload.hostname,
         updatedAt: payload.updatedAt,
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

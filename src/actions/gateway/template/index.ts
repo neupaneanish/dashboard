@@ -5,9 +5,9 @@ import { gRPCToHttpErrorPrivate } from "../../utils";
 
 export const templates = defineAction({
   handler: async (_, context) => {
-    const res = await gatewayProfileClient
+    const res = await gatewayProfileClient(context)
       .templates({})
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
 
     return res.templates;
   },

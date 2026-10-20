@@ -5,11 +5,11 @@ import { type DeleteData, gRPCToHttpErrorPrivate } from "../../utils";
 
 export const deleteNameserver = defineAction({
   handler: async (payload: DeleteData, context) => {
-    await rootProfileClient
+    await rootProfileClient(context)
       .deleteNameserver({
         id: payload.id,
         updatedAt: payload.updatedAt,
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

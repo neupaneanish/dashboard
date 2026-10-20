@@ -12,7 +12,7 @@ export const forgetPassword = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    const res = await externalAuthenticationClient
+    const res = await externalAuthenticationClient(context)
       .forgetPassword({ email: input.email })
       .catch(gRPCToHttpError);
 

@@ -48,7 +48,7 @@ export const createEducation = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    await gatewayProfileClient
+    await gatewayProfileClient(context)
       .createEducation({
         education: {
           school: input.school,
@@ -64,6 +64,6 @@ export const createEducation = defineAction({
           description: input.description,
         },
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });

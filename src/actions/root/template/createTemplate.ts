@@ -15,7 +15,7 @@ export const createTemplate = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    await rootProfileClient
+    await rootProfileClient(context)
       .createTemplate({
         template: {
           iconId: input.iconId,
@@ -23,6 +23,6 @@ export const createTemplate = defineAction({
           description: input.description,
         },
       })
-      .catch((e) => gRPCToHttpErrorPrivate(e, context.cookies));
+      .catch((e) => gRPCToHttpErrorPrivate(e, context));
   },
 });
