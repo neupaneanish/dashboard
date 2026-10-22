@@ -2,7 +2,7 @@ import type { AstroCookies } from "astro";
 
 import { COOKIES_KEY_ENABLE_2FA } from "../constants";
 
-export interface Verification<T = number> {
+export interface Verification<T = string> {
   session: string;
   method: number;
   expires: T;
@@ -47,8 +47,7 @@ export const getVerification = (
     cookie &&
     typeof cookie.session === "string" &&
     typeof cookie.method === "number" &&
-    typeof cookie.expires === "number" &&
-    cookie.expires > Date.now()
+    new Date(cookie.expires).getTime() > Date.now()
   ) {
     return cookie;
   }

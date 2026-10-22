@@ -93,7 +93,7 @@ export const gRPCToHttpErrorPublic = (
 ) => {
   if (
     e instanceof ConnectError &&
-    (e.code === Code.FailedPrecondition || e.code === Code.Unauthenticated)
+    (e.code === Code.Aborted || e.code === Code.Unauthenticated)
   ) {
     deletePublicCookies(cookies, value);
   }
@@ -160,11 +160,11 @@ export const verificationSessionCookies = (
 
 export const RemainingTimeError = (
   cookies: AstroCookies,
-  expires: number,
+  expires: string,
   value: SessionExpired,
   key: string,
 ) => {
-  const remaining = expires - Date.now();
+  const remaining = new Date(expires).getTime() - Date.now();
 
   if (remaining > 300_000) {
     switch (key) {

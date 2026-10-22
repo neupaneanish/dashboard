@@ -29,6 +29,11 @@ if (expiredMessage) {
   </dialog>
 )}
 
-<script is:inline>
-  document.getElementById('session-expired')?.showModal();
+<script>
+  document.addEventListener('astro:page-load', () => {
+    const dialog = document.getElementById('session-expired');
+    if (dialog instanceof HTMLDialogElement) {
+      dialog.showModal();
+    }
+  });
 </script>

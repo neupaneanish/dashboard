@@ -1,6 +1,9 @@
 import { ActionError, defineAction } from "astro:actions";
 
-import { COOKIES_KEY_VERIFICATION_SESSION } from "../../constants";
+import {
+  COOKIES_KEY_VERIFICATION,
+  COOKIES_KEY_VERIFICATION_SESSION,
+} from "../../constants";
 import { externalAuthenticationClient } from "../../libs/grpc";
 import {
   VerificationMethod,
@@ -19,7 +22,7 @@ export const resend = defineAction({
   handler: async (_, context) => {
     const { cookie, errorMessage } = verificationCheck(
       context.cookies,
-      COOKIES_KEY_VERIFICATION_SESSION,
+      COOKIES_KEY_VERIFICATION,
     );
 
     if (!(

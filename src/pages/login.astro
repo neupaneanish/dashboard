@@ -1,10 +1,9 @@
 ---
 import PublicLayout from '../layouts/PublicLayout.astro';
 import { actions, isInputError, isActionError } from 'astro:actions';
+import { deletePublicCookiesOnly } from '../utils/cookies.ts';
 
-if (Astro.locals.user) {
-  return Astro.redirect('/');
-}
+deletePublicCookiesOnly(Astro.cookies);
 
 const response = Astro.getActionResult(actions.external.login);
 
@@ -82,8 +81,8 @@ const serverError =
           </a>
         </div>
         <div>
-          <a class='forget-password' href='/forget-password'>
-            Forget Password?
+          <a class='forgot-password' href='/forgot-password'>
+            Forgot Password?
           </a>
         </div>
       </div>

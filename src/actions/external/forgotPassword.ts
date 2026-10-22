@@ -8,12 +8,12 @@ const schema = z.object({
   email: z.email("Enter a valid email"),
 });
 
-export const forgetPassword = defineAction({
+export const forgotPassword = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
     const res = await externalAuthenticationClient(context)
-      .forgetPassword({ email: input.email })
+      .forgotPassword({ email: input.email })
       .catch(gRPCToHttpError);
 
     return verificationSession(context.cookies, res.verification);
