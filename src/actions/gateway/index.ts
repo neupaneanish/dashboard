@@ -11,6 +11,7 @@ import {
   updateUsername,
   user,
 } from "./auth";
+import { counts } from "./count";
 import {
   createDomain,
   deleteDomain,
@@ -90,4 +91,6 @@ export const gateway = {
   updateSocial,
   // Templates
   templates,
+  // Counts
+  counts,
 };

@@ -1,5 +1,12 @@
 import { about, updateAbout } from "./about";
-import { updateRole, updateStatus, updateUsername, user, users } from "./auth";
+import {
+  count,
+  updateRole,
+  updateStatus,
+  updateUsername,
+  user,
+  users,
+} from "./auth";
 import { deleteDomain, domain, domains } from "./domain";
 import {
   deleteEducation,
@@ -20,7 +27,7 @@ import {
   nameserver,
   nameservers,
 } from "./nameservers";
-import { profile, updateProfile } from "./profile";
+import { counts, profile, updateProfile } from "./profile";
 import { deleteSocial, social, socials, updateSocial } from "./social";
 import {
   createTemplate,
@@ -40,6 +47,7 @@ export const root = {
   updateUsername,
   user,
   users,
+  count,
   // Domain
   deleteDomain,
   domain,
@@ -47,6 +55,7 @@ export const root = {
   // Profile
   profile,
   updateProfile,
+  counts,
   // Nameserver
   createNameserver,
   deleteNameserver,

@@ -1,6 +1,6 @@
 import { timestampFromDate } from "@bufbuild/protobuf/wkt";
 import { z } from "astro/zod";
-import { defineAction } from "astro:actions";
+import { ActionError, defineAction } from "astro:actions";
 
 import { gatewayProfileClient } from "../../../libs/grpc";
 import { nameSchema, titleSchema } from "../../../schema";
@@ -16,7 +16,7 @@ export const createProfile = defineAction({
   accept: "form",
   input: schema,
   handler: async (input, context) => {
-    await gatewayProfileClient(context)
+    const res = await gatewayProfileClient(context)
       .createProfile({
         dob: timestampFromDate(input.dob),
         profile: {
@@ -25,5 +25,14 @@ export const createProfile = defineAction({
         },
       })
       .catch((e) => gRPCToHttpErrorPrivate(e, context));
+
+    if (!res.profile) {
+      throw new ActionError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Something went wrong",
+      });
+    }
+
+    return res.profile;
   },
 });
