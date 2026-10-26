@@ -1,8 +1,12 @@
 ---
 import { actions, isActionError, isInputError } from 'astro:actions';
 import PublicLayout from '../layouts/PublicLayout.astro';
-import { COOKIES_KEY_SESSION } from '../constants';
 import PasswordStrength from '../components/PasswordStrength.astro';
+
+const user = Astro.locals.user;
+if (user) {
+  return Astro.redirect('/');
+}
 
 const response = Astro.getActionResult(actions.external.register);
 

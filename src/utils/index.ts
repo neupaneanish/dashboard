@@ -83,3 +83,11 @@ export const setVerification = (
     expires: data.expires,
   });
 };
+
+export interface User {
+  username: string;
+  role: string;
+  session: string;
+  userID: string;
+  isRoot: boolean;
+}

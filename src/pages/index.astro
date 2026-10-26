@@ -1,11 +1,16 @@
 ---
 import PrivateLayout from '../layouts/PrivateLayout.astro';
+import { deletePrivateCookiesOnly } from '../utils/cookies.ts';
 
-if (!Astro.locals.user) {
+const user = Astro.locals.user;
+
+if (!user) {
   return Astro.redirect('/login');
 }
+
+deletePrivateCookiesOnly(Astro.cookies);
 ---
 
-<PrivateLayout title='Home'>
+<PrivateLayout title='Home' user={user}>
   <h1>Home</h1>
 </PrivateLayout>

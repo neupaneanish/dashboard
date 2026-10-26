@@ -6,6 +6,7 @@ import { deletePrivateCookiesOnly } from "../../../utils/cookies";
 import { gRPCToHttpErrorPrivate } from "../../utils";
 
 export const logout = defineAction({
+  accept: "form",
   handler: async (_, context) => {
     await gatewayAuthenticationClient(context)
       .logout({})

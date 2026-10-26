@@ -1,7 +1,6 @@
 ---
 import { actions, isInputError, isActionError } from 'astro:actions';
 import {
-  COOKIES_KEY_SESSION,
   COOKIES_KEY_VERIFICATION,
   COOKIES_KEY_VERIFICATION_METHOD,
 } from '../constants';
@@ -9,6 +8,11 @@ import PublicLayout from '../layouts/PublicLayout.astro';
 import { VerificationMethod } from '../protobuf/external/authentication/v1/authentication_pb';
 import { getVerification, type Verification } from '../utils';
 import { VerificationHeading } from '../utils/heading';
+
+const user = Astro.locals.user;
+if (user) {
+  return Astro.redirect('/');
+}
 
 const verification = getVerification(Astro.cookies, COOKIES_KEY_VERIFICATION);
 if (!verification) {
