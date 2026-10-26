@@ -7,6 +7,11 @@ export default defineConfig({
     mode: "standalone",
   }),
   prefetch: false,
+  vite: {
+    ssr: {
+      noExternal: import.meta.env.PROD ? true : [],
+    },
+  },
   env: {
     schema: {
       AUTHENTICATION_SERVICE_URL: envField.string({
@@ -25,5 +30,9 @@ export default defineConfig({
         optional: false,
       }),
     },
+  },
+  server: {
+    host: true,
+    open: true,
   },
 });

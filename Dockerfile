@@ -1,9 +1,11 @@
 FROM node:24-alpine AS build
 
-WORKDIR app/
+WORKDIR /app
 
 COPY package.json package-lock.json ./
 RUN npm ci
+
+ENV ASTRO_TELEMETRY_DISABLED=1
 
 COPY . .
 RUN npm run build

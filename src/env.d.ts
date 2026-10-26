@@ -2,11 +2,6 @@
 
 declare namespace App {
   interface Locals {
-    user: {
-      username: string;
-      role: string;
-      session: string;
-      userID: string;
-    } | null;
+    user: import("./utils").User | null;
   }
 }
