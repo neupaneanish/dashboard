@@ -1,0 +1,26 @@
+---
+import { IconCircleCheck } from '@tabler/icons-astro';
+import type { UserSummary } from '../protobuf/root/authentication/v1/authentication_pb';
+import parsePhoneNumberFromString from 'libphonenumber-js/mobile';
+
+interface Props {
+  user: UserSummary;
+}
+
+const { user } = Astro.props;
+---
+
+<a class='user' href=`/users/${user.id}`>
+  <h2>{user.username.slice(0, 1).toUpperCase()}</h2>
+  <div class='details'>
+    <p class='username'>{user.username}</p>
+    <div class='email'>
+      <p>{user.email}</p>
+      {user.emailVerified && <IconCircleCheck size={18} />}
+    </div>
+    <div class='phone'>
+      <p>{parsePhoneNumberFromString(user.phone)?.formatInternational()}</p>
+      {user.phoneVerified && <IconCircleCheck />}
+    </div>
+  </div>
+</a>

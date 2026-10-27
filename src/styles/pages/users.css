@@ -1,0 +1,50 @@
+.users {
+  display: flex;
+  flex-wrap: wrap;
+  justify-items: center;
+  gap: 2rem;
+  justify-content: space-evenly;
+
+  .user {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    border: 1px solid gray;
+    border-radius: 0.5rem;
+    padding: 0 0.5rem;
+
+    h2 {
+      font-family: var(--font-header), sans-serif;
+      font-size: 5rem;
+      line-height: normal;
+    }
+
+    .details {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-evenly;
+
+      .username {
+        font-family: var(--font-header), sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.5rem;
+      }
+
+      .email {
+        display: flex;
+        align-items: center;
+        color: darkgray;
+        font-size: 1.15rem;
+        gap: 0.25rem;
+      }
+
+      .phone {
+        display: flex;
+        align-items: center;
+        color: darkgray;
+        font-size: 1.15rem;
+        gap: 0.25rem;
+      }
+    }
+  }
+}

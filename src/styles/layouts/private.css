@@ -123,6 +123,7 @@
       font-family: var(--font-header), sans-serif;
       position: sticky;
       top: 0;
+      text-transform: uppercase;
     }
   }
 

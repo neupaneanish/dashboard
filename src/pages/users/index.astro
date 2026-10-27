@@ -1,0 +1,32 @@
+---
+import { actions } from 'astro:actions';
+import PrivateLayout from '../../layouts/PrivateLayout.astro';
+import ErrorMessage from '../../components/ErrorMessage.astro';
+import User from '../../components/User.astro';
+import '../../styles/pages/users.css';
+
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect('/login');
+}
+
+if (!user.isRoot) {
+  return Astro.redirect('/');
+}
+
+const { data, error } = await Astro.callAction(actions.root.users, {});
+---
+
+<PrivateLayout title='Users' user={user} heading='Users'>
+  {error && <ErrorMessage message={error.message} />}
+  {data && data.length > 0 ? (
+    <div class='users'>
+      {data.map(user => (
+        <User user={user} />
+      ))}
+    </div>
+  ) : (
+    <div>No Users</div>
+  )}
+</PrivateLayout>
