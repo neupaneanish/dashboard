@@ -2,6 +2,7 @@
 import PublicLayout from '../layouts/PublicLayout.astro';
 import { actions, isInputError, isActionError } from 'astro:actions';
 import { deletePublicCookiesOnly } from '../utils/cookies';
+import ErrorMessage from '../components/ErrorMessage.astro';
 
 const user = Astro.locals.user;
 if (user) {
@@ -35,11 +36,7 @@ const serverError =
 <PublicLayout title='Login'>
   <div class='login'>
     <h2 class='header'>Welcome Back</h2>
-    {serverError && (
-      <div class='error-message'>
-        <p>{serverError}</p>
-      </div>
-    )}
+    {serverError && <ErrorMessage message={serverError} />}
     <form
       id='login-form'
       class='form'

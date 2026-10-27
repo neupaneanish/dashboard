@@ -8,6 +8,7 @@ import PublicLayout from '../layouts/PublicLayout.astro';
 import { VerificationMethod } from '../protobuf/external/authentication/v1/authentication_pb';
 import { getVerification, type Verification } from '../utils';
 import { VerificationHeading } from '../utils/heading';
+import ErrorMessage from '../components/ErrorMessage.astro';
 
 const user = Astro.locals.user;
 if (user) {
@@ -79,11 +80,7 @@ const codeError = isInputError(response?.error)
 <PublicLayout title='Verification'>
   <div class='verification'>
     <h2 class='header'>{heading}</h2>
-    {serverError && (
-      <div class='error-message'>
-        <p>{serverError}</p>
-      </div>
-    )}
+    {serverError && <ErrorMessage message={serverError} />}
     <form class='form' method='post' action={actions.external.verification}>
       <input type='hidden' name='method' value={methodValue} />
       <div class='form-group'>

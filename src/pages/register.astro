@@ -2,6 +2,7 @@
 import { actions, isActionError, isInputError } from 'astro:actions';
 import PublicLayout from '../layouts/PublicLayout.astro';
 import PasswordStrength from '../components/PasswordStrength.astro';
+import ErrorMessage from '../components/ErrorMessage.astro';
 
 const user = Astro.locals.user;
 if (user) {
@@ -45,11 +46,7 @@ const serverError =
 <PublicLayout title='Register'>
   <div class='register'>
     <h2 class='header'>Register</h2>
-    {serverError && (
-      <div class='error-message'>
-        <p>{serverError}</p>
-      </div>
-    )}
+    {serverError && <ErrorMessage message={serverError} />}
     <form class='form' method='post' action={actions.external.register}>
       <div class='form-group'>
         <label for='email'>Email</label>
