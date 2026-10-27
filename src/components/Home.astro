@@ -1,0 +1,24 @@
+---
+import { actions } from 'astro:actions';
+import ErrorMessage from './ErrorMessage.astro';
+import CountCard from './CountCard.astro';
+import {
+  IconDesk,
+  IconLink,
+  IconSchool,
+  IconSocial,
+} from '@tabler/icons-astro';
+const { data, error } = await Astro.callAction(actions.gateway.counts, {});
+---
+
+<div class='home'>
+  {error && <ErrorMessage message={error.message} />}
+  {data && (
+    <div class='counts'>
+      <CountCard name='Educations' count={data.educations} icon={IconSchool} />
+      <CountCard name='Experiences' count={data.experiences} icon={IconDesk} />
+      <CountCard name='Domains' count={data.domains} icon={IconLink} />
+      <CountCard name='Socials' count={data.socials} icon={IconSocial} />
+    </div>
+  )}
+</div>

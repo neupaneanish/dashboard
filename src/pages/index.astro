@@ -1,6 +1,9 @@
 ---
 import PrivateLayout from '../layouts/PrivateLayout.astro';
-import { deletePrivateCookiesOnly } from '../utils/cookies.ts';
+import { deletePrivateCookiesOnly } from '../utils/cookies';
+import RootHome from '../components/RootHome.astro';
+import '../styles/pages/index.css';
+import Home from '../components/Home.astro';
 
 const user = Astro.locals.user;
 
@@ -11,6 +14,6 @@ if (!user) {
 deletePrivateCookiesOnly(Astro.cookies);
 ---
 
-<PrivateLayout title='Home' user={user}>
-  <h1>Home</h1>
+<PrivateLayout title='Home' user={user} heading='Dashboard'>
+  {user.isRoot ? <RootHome /> : <Home />}
 </PrivateLayout>

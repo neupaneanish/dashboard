@@ -1,0 +1,80 @@
+---
+import {
+  IconLayoutDashboard,
+  IconLogout,
+  IconSettings,
+} from '@tabler/icons-astro';
+import { actions } from 'astro:actions';
+import { type SideNav } from './sidenav';
+
+interface Props {
+  navs: SideNav[];
+}
+
+const { navs } = Astro.props;
+
+const current = Astro.url.pathname;
+
+const isActive = (path: string) => {
+  if (path === '/') return current === '/';
+  return current.startsWith(path);
+};
+---
+
+<nav class='side'>
+  <h1>Founder</h1>
+  <div class='nav'>
+    <div class='nav_items'>
+      <a class:list={['nav__item', { active: current === '/' }]} href='/'>
+        <IconLayoutDashboard size='1.5rem' />
+        <h2>Home</h2>
+      </a>
+      {navs.map(item => {
+        return (
+          <a
+            href={item.path}
+            class:list={['nav__item', { active: isActive(item.path) }]}
+          >
+            <item.icon size={24} />
+            <span>{item.name}</span>
+          </a>
+        );
+      })}
+    </div>
+    <div class='nav_settings'>
+      <a
+        class:list={['nav__item', { active: current === '/settings' }]}
+        href='/settings'
+      >
+        <IconSettings size='1.5rem' />
+        <h2>Settings</h2>
+      </a>
+      <button class='btn' commandfor='logout' command='show-modal'>
+        <IconLogout />
+        Logout
+      </button>
+    </div>
+  </div>
+  <dialog id='logout' closedby='none'>
+    <div class='dialog'>
+      <h2>Do you want to logout</h2>
+      <form class='btns' method='post'>
+        <button
+          class='btn btn-green'
+          command='close'
+          commandfor='logout'
+          type='button'
+        >
+          Cancel
+        </button>
+        <button
+          class='btn btn-crimson'
+          type='submit'
+          formaction={actions.gateway.logout}
+        >
+          Logout
+        </button>
+      </form>
+    </div>
+  </dialog>
+</nav>

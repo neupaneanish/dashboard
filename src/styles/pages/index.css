@@ -1,0 +1,50 @@
+.home {
+  display: flex;
+  flex-direction: column;
+
+  .counts {
+    display: flex;
+    justify-items: center;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: space-evenly;
+  }
+
+  .count-card {
+    display: flex;
+    flex-direction: row;
+    border-radius: 0.5rem;
+    max-width: 15rem;
+    width: 100%;
+    align-items: center;
+    border: gray 1px solid;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    gap: 0.5rem;
+    padding: 0.25rem;
+    justify-content: space-evenly;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .details {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      justify-items: center;
+      align-items: center;
+
+      & h2 {
+        font-family: var(--font-header), sans-serif;
+        font-size: 1.5rem;
+      }
+
+      & p {
+        font-size: 1.2rem;
+        text-transform: uppercase;
+      }
+    }
+  }
+}

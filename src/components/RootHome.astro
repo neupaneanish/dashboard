@@ -1,0 +1,65 @@
+---
+import { actions } from 'astro:actions';
+import CountCard from './CountCard.astro';
+import {
+  IconDesk,
+  IconIcons,
+  IconInfoCircle,
+  IconLink,
+  IconSchool,
+  IconServer,
+  IconSocial,
+  IconTemplate,
+  IconUser,
+  IconUsers,
+} from '@tabler/icons-astro';
+import ErrorMessage from './ErrorMessage.astro';
+const { data: count, error: countError } = await Astro.callAction(
+  actions.root.count,
+  {}
+);
+const { data: counts, error: countsError } = await Astro.callAction(
+  actions.root.counts,
+  {}
+);
+---
+
+<div class='home'>
+  <div hidden={!countsError || !countsError}>
+    {countError && <ErrorMessage message={countError.message} />}
+    {countsError && <ErrorMessage message={countsError.message} />}
+  </div>
+
+  <div class='counts'>
+    {count && <CountCard name='Users' count={count.users} icon={IconUsers} />}
+    {counts && (
+      <>
+        <CountCard name='Profiles' count={counts.profiles} icon={IconUser} />
+        <CountCard name='Abouts' count={counts.abouts} icon={IconInfoCircle} />
+        <CountCard name='Domains' count={counts.domains} icon={IconLink} />
+        <CountCard
+          name='Educations'
+          count={counts.educations}
+          icon={IconSchool}
+        />
+        <CountCard
+          name='Experiences'
+          count={counts.experiences}
+          icon={IconDesk}
+        />
+        <CountCard name='Socials' count={counts.socials} icon={IconSocial} />
+        <CountCard
+          name='Nameservers'
+          count={counts.nameservers}
+          icon={IconServer}
+        />
+        <CountCard name='Icons' count={counts.icons} icon={IconIcons} />
+        <CountCard
+          name='Templates'
+          count={counts.templates}
+          icon={IconTemplate}
+        />
+      </>
+    )}
+  </div>
+</div>

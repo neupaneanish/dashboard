@@ -8,14 +8,16 @@ import type { User } from '../utils';
 interface Props {
   title: string;
   user: User;
+  heading: string;
 }
-const { title, user } = Astro.props;
+const { title, user, heading } = Astro.props;
 ---
 
 <Layout title={title}>
   <div class='private'>
     <SideNav navs={user.isRoot ? ROOT_NAVS : GATEWAY_NAVS} />
     <main>
+      <h1 class='heading'>{heading}</h1>
       <slot />
     </main>
   </div>
